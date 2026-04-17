@@ -64,7 +64,7 @@ final class NetteFilesGeneratorTest extends TestCase
     {
         /** @var Config $config */
         $config = require self::CONFIG_FILE;
-        NetteFilesGeneratorFactory::default($config)->run();
+        NetteFilesGeneratorFactory::withJsonDecoder($config)->run();
 
         foreach (self::FILES as $expectedPath => $actualPath) {
             self::assertFileExists($actualPath, sprintf('Expected output file "%s" was not generated', $actualPath));
