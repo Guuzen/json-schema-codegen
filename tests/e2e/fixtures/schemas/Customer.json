@@ -1,0 +1,7 @@
+{
+    "type": "object",
+    "properties": {
+        "homeAddress":    {"$ref": "address/Address.json", "title": "HomeAddress"},
+        "billingAddress": {"$ref": "billing/Address.json", "title": "BillingAddress"}
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "description": "A DTO with explicit default values",
+    "type": "object",
+    "properties": {
+        "required":  {"type": "string"},
+        "status":    {"type": "string",            "default": "active"},
+        "count":     {"type": "integer",           "default": 0},
+        "enabled":   {"type": "boolean",           "default": true},
+        "nickname":  {"type": ["string", "null"],  "default": "anon"},
+        "comment":     {"type": ["string", "null"]},
+        "note":        {"$ref": "Note.json", "default": null},
+        "pinnedNote": {"$ref": "Note.json", "default": {"content": "pinned"}}
+    }
+}

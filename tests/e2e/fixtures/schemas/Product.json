@@ -1,0 +1,20 @@
+{
+    "description": "A sellable product",
+    "type": "object",
+    "properties": {
+        "name":         {"type": "string", "minLength": 1, "description": "The product name"},
+        "code":         {"type": "string"},
+        "nickname":     {"type": ["string", "null"]},
+        "stock":        {"type": "integer"},
+        "quantity":     {"type": "integer", "minimum": 0, "maximum": 1000},
+        "rating":       {"type": ["integer", "null"]},
+        "price":        {"type": "number"},
+        "discount":     {"type": ["number", "null"]},
+        "active":       {"type": "boolean"},
+        "featured":     {"type": ["boolean", "null"]},
+        "tags":         {"type": "array", "items": {"type": "string"}},
+        "requiredTags": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "data":         {"type": "array"},
+        "externalId":   {"type": ["integer", "string"]}
+    }
+}

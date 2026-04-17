@@ -1,0 +1,6 @@
+/.idea
+/vendor
+/.phpunit.result.cache
+/tests/e2e/fixtures/schemas/**/*.php
+/tests/e2e/fixtures/schemas/*.php
+/coverage

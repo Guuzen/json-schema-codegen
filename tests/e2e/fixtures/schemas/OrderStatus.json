@@ -1,0 +1,4 @@
+{
+    "enum": ["pending", "processing", "shipped", "delivered"],
+    "description": "The status of an order"
+}

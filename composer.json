@@ -1,0 +1,32 @@
+{
+    "name": "guuzen/json-schema-codegen",
+    "description": "Project to generate PHP DTOs from JSON Schema",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Guuzen\\JsonSchemaCodegen\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Guuzen\\JsonSchemaCodegen\\Tests\\Unit\\": "tests/unit/",
+            "Guuzen\\JsonSchemaCodegen\\Tests\\E2e\\": "tests/e2e/"
+        }
+    },
+    "require": {
+        "league/uri": "^7.8",
+        "php": "^8.4"
+    },
+    "suggest": {
+        "nette/php-generator": "Required to use the built-in Nette-based generators in src/Nette/",
+        "symfony/yaml": "Required to use YamlDecoder"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.0",
+        "phpstan/phpstan": "^2.1",
+        "nette/php-generator": "^4.2",
+        "symfony/yaml": "^8.0"
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "type": "object",
+    "properties": {
+        "productId": {"type": "string"},
+        "quantity":  {"type": "integer"}
+    }
+}

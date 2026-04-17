@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "properties": {
+        "customer": {"$ref": "Customer.json"},
+        "status":   {"$ref": "OrderStatus.json"},
+        "couponCode": {"$ref": "CouponCode.json"},
+        "quantity": {"$ref": "Quantity.json"},
+        "address":  {"$ref": "address/Address.json"},
+        "note":     {"oneOf": [{"$ref": "Note.json"}, {"type": "null"}]},
+        "items":    {"type": "array", "items": {"$ref": "OrderItem.json"}},
+        "payment":  {"oneOf": [{"$ref": "CreditCardPayment.json"}, {"$ref": "BankTransferPayment.json"}]}
+    }
+}
