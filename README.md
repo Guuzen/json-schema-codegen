@@ -43,12 +43,11 @@ require 'vendor/autoload.php';
 use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
 use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixDirectoryPath;
-use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixPath;
 
 $config = new Config(
     baseNamespace: 'App\Dto',
-    schemaPath: new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/path/to/schemas')),
-    outputPath: new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/path/to/output')),
+    schemaPath: new AbsoluteUnixDirectoryPath('/path/to/schemas'),
+    outputPath: new AbsoluteUnixDirectoryPath('/path/to/output'),
     schemaSuffix: '.json',
 );
 

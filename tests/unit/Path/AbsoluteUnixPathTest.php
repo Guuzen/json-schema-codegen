@@ -29,7 +29,7 @@ final class AbsoluteUnixPathTest extends TestCase
         self::assertEquals(
             new RelativeUnixPath('Models/Person.json'),
             new AbsoluteUnixPath('/schemas/Models/Person.json')->relativeTo(
-                new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/schemas')),
+                new AbsoluteUnixDirectoryPath('/schemas'),
             ),
         );
     }
@@ -39,7 +39,7 @@ final class AbsoluteUnixPathTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         new AbsoluteUnixPath('/other/Person.json')->relativeTo(
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/schemas')),
+            new AbsoluteUnixDirectoryPath('/schemas'),
         );
     }
 

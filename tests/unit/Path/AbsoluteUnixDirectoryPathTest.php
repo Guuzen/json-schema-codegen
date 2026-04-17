@@ -14,14 +14,20 @@ final class AbsoluteUnixDirectoryPathTest extends TestCase
 {
     public function testConstructorNormalizesTrailingSlash(): void
     {
-        self::assertSame('/schemas/', new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/schemas'))->value);
+        self::assertSame('/schemas/', new AbsoluteUnixDirectoryPath('/schemas')->value);
+    }
+
+    public function testConstructorRejectsRelativePath(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new AbsoluteUnixDirectoryPath('relative/path');
     }
 
     public function testResolveReturnsAbsolutePath(): void
     {
         self::assertEquals(
             new AbsoluteUnixPath('/schemas/Models/Person.json'),
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/schemas'))->resolve(new RelativeUnixPath('Models/Person.json')),
+            new AbsoluteUnixDirectoryPath('/schemas')->resolve(new RelativeUnixPath('Models/Person.json')),
         );
     }
 
@@ -29,7 +35,7 @@ final class AbsoluteUnixDirectoryPathTest extends TestCase
     {
         self::assertEquals(
             new AbsoluteUri('file:///tmp/schemas/'),
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/tmp/schemas'))->toUri(),
+            new AbsoluteUnixDirectoryPath('/tmp/schemas')->toUri(),
         );
     }
 }
