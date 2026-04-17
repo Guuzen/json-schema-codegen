@@ -7,7 +7,7 @@ namespace App\Dto;
 /**
  * A sellable product
  */
-class Product
+final class Product
 {
     public function __construct(
         /**

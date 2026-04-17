@@ -7,7 +7,7 @@ namespace App\Dto;
 /**
  * A DTO with explicit default values
  */
-class Defaults
+final class Defaults
 {
     public function __construct(
         /**

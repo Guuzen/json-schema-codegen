@@ -6,7 +6,7 @@ namespace App\Dto;
 
 use App\Dto\address\Address;
 
-class Order
+final class Order
 {
     public function __construct(
         /**

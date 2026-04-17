@@ -7,7 +7,7 @@ namespace App\Dto;
 use App\Dto\address\Address as HomeAddress;
 use App\Dto\billing\Address as BillingAddress;
 
-class Customer
+final class Customer
 {
     public function __construct(
         /**
