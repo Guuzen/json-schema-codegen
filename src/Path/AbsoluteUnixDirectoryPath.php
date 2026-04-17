@@ -11,9 +11,12 @@ final readonly class AbsoluteUnixDirectoryPath
 {
     public string $value;
 
-    public function __construct(AbsoluteUnixPath $path)
+    public function __construct(string $path)
     {
-        $this->value = rtrim($path->value, '/') . '/';
+        if (!str_starts_with($path, '/')) {
+            throw new \InvalidArgumentException(sprintf('Path must be absolute: "%s"', $path));
+        }
+        $this->value = rtrim($path, '/') . '/';
     }
 
     public function resolve(RelativeUnixPath $relativePath): AbsoluteUnixPath

@@ -113,7 +113,7 @@ final class PathsWithSuffixTest extends TestCase
     public function testCreateCollectsPathsFromDirectory(): void
     {
         $collector = PathsWithSuffix::create(
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath(__DIR__)),
+            new AbsoluteUnixDirectoryPath(__DIR__),
             'PathsWithSuffixTest.php',
         );
 

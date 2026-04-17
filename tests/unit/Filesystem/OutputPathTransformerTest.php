@@ -57,8 +57,8 @@ final class OutputPathTransformerTest extends TestCase
     public function testGenerate(string $schemaPath, string $outputPath, string $path, string $suffix, string $expected): void
     {
         $transformer = new OutputPathTransformer(
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath($schemaPath)),
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath($outputPath)),
+            new AbsoluteUnixDirectoryPath($schemaPath),
+            new AbsoluteUnixDirectoryPath($outputPath),
             $suffix,
         );
 
@@ -85,8 +85,8 @@ final class OutputPathTransformerTest extends TestCase
     public function testGenerateThrowsWhenPathIsOutsideSchemaBase(string $schemaPath, string $path): void
     {
         $transformer = new OutputPathTransformer(
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath($schemaPath)),
-            new AbsoluteUnixDirectoryPath(new AbsoluteUnixPath('/generated/')),
+            new AbsoluteUnixDirectoryPath($schemaPath),
+            new AbsoluteUnixDirectoryPath('/generated/'),
             '.json',
         );
 
