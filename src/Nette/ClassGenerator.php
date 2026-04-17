@@ -31,7 +31,7 @@ final readonly class ClassGenerator implements FileGenerator
             return null;
         }
 
-        [$file, $namespace, $constructor] = $this->createPhpFile->constructorPromoted($schemaUri, $schema);
+        [$file, $namespace, $class, $constructor] = $this->createPhpFile->constructorPromoted($schemaUri, $schema);
 
         foreach ($this->constructorParameterOrder->order($schema) as $propertyName => $propertySchema) {
             $parameter = $constructor->addPromotedParameter($propertyName);
