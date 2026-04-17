@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
-class CreditCardPayment
+final class CreditCardPayment
 {
     public function __construct(
         /**

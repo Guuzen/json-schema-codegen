@@ -36,6 +36,7 @@ final readonly class CreatePhpFile
         }
 
         $constructor = $class->addMethod('__construct');
+        $class->setFinal();
 
         return [$file, $namespace, $constructor];
     }
