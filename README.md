@@ -99,7 +99,7 @@ namespace App\Dto;
 /**
  * A sellable product
  */
-class Product
+final class Product
 {
     public function __construct(
         /**
@@ -154,7 +154,7 @@ Cross-file references via `$ref` are also resolved. Given `schemas/Order.json`:
 The generator produces:
 
 ```php
-class Order
+final class Order
 {
     public function __construct(
         /** @var Customer */
