@@ -41,7 +41,7 @@ final class Defaults
         /**
          * @var string|null|Undefined
          */
-        #[Assert\Type('string')]
+        #[Assert\Type(['string', Undefined::class])]
         public $comment = Undefined::Value,
         /**
          * @var Note

@@ -82,6 +82,7 @@ final class Product
         /**
          * @var int|string
          */
+        #[Assert\Type(['integer', 'string'])]
         public $externalId,
     ) {
     }

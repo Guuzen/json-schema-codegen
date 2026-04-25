@@ -38,16 +38,17 @@ final class Order
         /**
          * @var CreditCardPayment|BankTransferPayment
          */
+        #[Assert\Type([CreditCardPayment::class, BankTransferPayment::class])]
         public $payment,
         /**
          * @var non-empty-string|Undefined
          */
-        #[Assert\Type('string')]
+        #[Assert\Type(['string', Undefined::class])]
         public $couponCode = Undefined::Value,
         /**
          * @var Note|null|Undefined
          */
-        #[Assert\Type(Note::class)]
+        #[Assert\Type([Note::class, Undefined::class])]
         public $note = Undefined::Value,
     ) {
     }
