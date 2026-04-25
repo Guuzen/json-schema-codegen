@@ -77,7 +77,7 @@ final readonly class TypeGenerator implements PropertyGenerator
             SchemaType::Integer => new ResolvedTypes(['integer'], []),
             SchemaType::Number => new ResolvedTypes(['float'], []),
             SchemaType::Boolean => new ResolvedTypes(['bool'], []),
-            SchemaType::Array => new ResolvedTypes(['array'], []),
+            SchemaType::Array => new ResolvedTypes(['list'], []),
             SchemaType::Object => new ResolvedTypes(['object'], []),
             default => new ResolvedTypes([], []),
         }, $schema);

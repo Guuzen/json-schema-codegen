@@ -67,17 +67,17 @@ final class Product
         /**
          * @var list<string>
          */
-        #[Assert\Type('array')]
+        #[Assert\Type('list')]
         public $tags,
         /**
          * @var non-empty-list<string>
          */
-        #[Assert\Type('array')]
+        #[Assert\Type('list')]
         public $requiredTags,
         /**
          * @var list<mixed>
          */
-        #[Assert\Type('array')]
+        #[Assert\Type('list')]
         public $data,
         /**
          * @var int|string

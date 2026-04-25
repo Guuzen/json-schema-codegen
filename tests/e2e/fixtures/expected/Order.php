@@ -34,7 +34,7 @@ final class Order
         /**
          * @var list<OrderItem>
          */
-        #[Assert\Type('array')]
+        #[Assert\Type('list')]
         public $items,
         /**
          * @var CreditCardPayment|BankTransferPayment

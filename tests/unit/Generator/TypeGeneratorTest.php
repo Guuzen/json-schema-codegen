@@ -55,7 +55,7 @@ final class TypeGeneratorTest extends TestCase
         yield 'integer' => [new Schema(type: SchemaType::Integer), new ResolvedTypes(['integer'], [])];
         yield 'number'  => [new Schema(type: SchemaType::Number), new ResolvedTypes(['float'], [])];
         yield 'boolean' => [new Schema(type: SchemaType::Boolean), new ResolvedTypes(['bool'], [])];
-        yield 'array'   => [new Schema(type: SchemaType::Array), new ResolvedTypes(['array'], [])];
+        yield 'array'   => [new Schema(type: SchemaType::Array), new ResolvedTypes(['list'], [])];
         yield 'object'  => [new Schema(type: SchemaType::Object), new ResolvedTypes(['object'], [])];
         yield 'null'         => [new Schema(type: SchemaType::Null), new ResolvedTypes([], [])];
         yield 'unknown'      => [new Schema(), new ResolvedTypes([], [])];
