@@ -6,6 +6,7 @@ namespace App\Dto;
 
 use App\Dto\address\Address;
 use Guuzen\JsonSchemaCodegen\Undefined;
+use Symfony\Component\Validator\Constraints as Assert;
 
 final class Order
 {
@@ -13,6 +14,7 @@ final class Order
         /**
          * @var Customer
          */
+        #[Assert\Type(Customer::class)]
         public $customer,
         /**
          * @var 'pending'|'processing'|'shipped'|'delivered'
@@ -21,14 +23,17 @@ final class Order
         /**
          * @var int<1, 100>
          */
+        #[Assert\Type('integer')]
         public $quantity,
         /**
          * @var Address
          */
+        #[Assert\Type(Address::class)]
         public $address,
         /**
          * @var list<OrderItem>
          */
+        #[Assert\Type('array')]
         public $items,
         /**
          * @var CreditCardPayment|BankTransferPayment
@@ -37,10 +42,12 @@ final class Order
         /**
          * @var non-empty-string|Undefined
          */
+        #[Assert\Type('string')]
         public $couponCode = Undefined::Value,
         /**
          * @var Note|null|Undefined
          */
+        #[Assert\Type(Note::class)]
         public $note = Undefined::Value,
     ) {
     }

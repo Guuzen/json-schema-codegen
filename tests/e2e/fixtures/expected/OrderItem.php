@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 final class OrderItem
 {
     public function __construct(
         /**
          * @var string
          */
+        #[Assert\Type('string')]
         public $productId,
         /**
          * @var int
          */
+        #[Assert\Type('integer')]
         public $quantity,
     ) {
     }
