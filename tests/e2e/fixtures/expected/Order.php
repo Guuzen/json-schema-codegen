@@ -19,6 +19,7 @@ final class Order
         /**
          * @var 'pending'|'processing'|'shipped'|'delivered'
          */
+        #[Assert\Type('string')]
         public $status,
         /**
          * @var int<1, 100>

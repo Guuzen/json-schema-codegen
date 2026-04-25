@@ -60,6 +60,18 @@ final readonly class TypeGenerator implements PropertyGenerator
             )), $schema);
         }
 
+        if ($schema->enum !== null && $schema->type === null) {
+            $types = [];
+            if (array_filter($schema->enum, 'is_string') !== []) {
+                $types[] = 'string';
+            }
+            if (array_filter($schema->enum, 'is_int') !== []) {
+                $types[] = 'integer';
+            }
+
+            return $this->withUndefinedIfNeeded(new ResolvedTypes($types, []), $schema);
+        }
+
         return $this->withUndefinedIfNeeded(match ($schema->type) {
             SchemaType::String => new ResolvedTypes(['string'], []),
             SchemaType::Integer => new ResolvedTypes(['integer'], []),

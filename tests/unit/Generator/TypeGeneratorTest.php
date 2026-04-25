@@ -57,8 +57,11 @@ final class TypeGeneratorTest extends TestCase
         yield 'boolean' => [new Schema(type: SchemaType::Boolean), new ResolvedTypes(['bool'], [])];
         yield 'array'   => [new Schema(type: SchemaType::Array), new ResolvedTypes(['array'], [])];
         yield 'object'  => [new Schema(type: SchemaType::Object), new ResolvedTypes(['object'], [])];
-        yield 'null'    => [new Schema(type: SchemaType::Null), new ResolvedTypes([], [])];
-        yield 'unknown' => [new Schema(), new ResolvedTypes([], [])];
+        yield 'null'         => [new Schema(type: SchemaType::Null), new ResolvedTypes([], [])];
+        yield 'unknown'      => [new Schema(), new ResolvedTypes([], [])];
+        yield 'string enum'       => [new Schema(enum: ['a', 'b']), new ResolvedTypes(['string'], [])];
+        yield 'integer enum'      => [new Schema(enum: [1, 2]), new ResolvedTypes(['integer'], [])];
+        yield 'mixed int+str enum' => [new Schema(enum: ['a', 1]), new ResolvedTypes(['string', 'integer'], [])];
     }
 
     #[DataProvider('provideScalarTypes')]
@@ -83,8 +86,16 @@ final class TypeGeneratorTest extends TestCase
                 [['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address']],
             ),
         ];
+        yield 'ref to string enum' => [
+            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/OrderStatus.json'))),
+            new ResolvedTypes(['string'], []),
+        ];
         yield 'optional ref includes undefined' => [
-            new Schema(required: false, ref: new Ref(new AbsoluteUri('file:///schemas/address/Address.json')), title: 'HomeAddress'),
+            new Schema(
+                required: false,
+                ref: new Ref(new AbsoluteUri('file:///schemas/address/Address.json')),
+                title: 'HomeAddress',
+            ),
             new ResolvedTypes(
                 ['HomeAddress', 'Undefined'],
                 [
@@ -101,6 +112,7 @@ final class TypeGeneratorTest extends TestCase
         $registry = new SchemaRegistry([
             'file:///schemas/Quantity.json'         => new Schema(type: SchemaType::Integer, minimum: 1, maximum: 100),
             'file:///schemas/address/Address.json'  => new Schema(type: SchemaType::Object),
+            'file:///schemas/OrderStatus.json'      => new Schema(enum: ['pending', 'processing', 'shipped']),
         ]);
 
         self::assertEquals($expected, self::makeGenerator($registry)->generate($schema));
@@ -129,7 +141,9 @@ final class TypeGeneratorTest extends TestCase
         ];
         yield 'optional multi type union includes undefined' => [
             new Schema(type: [SchemaType::Integer, SchemaType::String], required: false),
-            new ResolvedTypes(['integer', 'string', 'Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
+            new ResolvedTypes(
+                ['integer', 'string', 'Undefined'],
+                [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
         ];
         yield 'nullable ref from oneOf' => [
             new Schema(oneOf: [
