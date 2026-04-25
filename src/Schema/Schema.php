@@ -24,6 +24,7 @@ final readonly class Schema
      */
     public function __construct(
         public SchemaType|array|null $type = null,
+        public bool $required = true,
         public ?array $properties = null,
         public ?Schema $items = null,
         public ?Ref $ref = null,

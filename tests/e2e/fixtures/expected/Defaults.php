@@ -15,33 +15,33 @@ final class Defaults
          */
         public $required,
         /**
+         * @var string
+         */
+        public $status,
+        /**
+         * @var int
+         */
+        public $count,
+        /**
+         * @var bool
+         */
+        public $enabled,
+        /**
+         * @var string|null
+         */
+        public $nickname,
+        /**
          * @var string|null
          */
         public $comment,
         /**
-         * @var string
+         * @var Note
          */
-        public $status = 'active',
-        /**
-         * @var int
-         */
-        public $count = 0,
-        /**
-         * @var bool
-         */
-        public $enabled = true,
-        /**
-         * @var string|null
-         */
-        public $nickname = 'anon',
+        public $note,
         /**
          * @var Note
          */
-        public $note = null,
-        /**
-         * @var Note
-         */
-        public $pinnedNote = new Note(content: 'pinned'),
+        public $pinnedNote,
     ) {
     }
 }
