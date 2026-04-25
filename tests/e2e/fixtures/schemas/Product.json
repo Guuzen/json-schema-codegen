@@ -1,6 +1,7 @@
 {
     "description": "A sellable product",
     "type": "object",
+    "required": ["name", "code", "nickname", "stock", "quantity", "rating", "price", "discount", "active", "featured", "tags", "requiredTags", "data", "externalId"],
     "properties": {
         "name":         {"type": "string", "minLength": 1, "description": "The product name"},
         "code":         {"type": "string"},

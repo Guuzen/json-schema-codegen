@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use Guuzen\JsonSchemaCodegen\Undefined;
+
 /**
  * A DTO with explicit default values
  */
@@ -17,31 +19,31 @@ final class Defaults
         /**
          * @var string
          */
-        public $status,
+        public $status = 'active',
         /**
          * @var int
          */
-        public $count,
+        public $count = 0,
         /**
          * @var bool
          */
-        public $enabled,
+        public $enabled = true,
         /**
          * @var string|null
          */
-        public $nickname,
+        public $nickname = 'anon',
         /**
-         * @var string|null
+         * @var string|null|Undefined
          */
-        public $comment,
-        /**
-         * @var Note
-         */
-        public $note,
+        public $comment = Undefined::Value,
         /**
          * @var Note
          */
-        public $pinnedNote,
+        public $note = null,
+        /**
+         * @var Note
+         */
+        public $pinnedNote = new Note(content: 'pinned'),
     ) {
     }
 }

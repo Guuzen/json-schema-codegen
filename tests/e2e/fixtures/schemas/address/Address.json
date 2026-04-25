@@ -1,5 +1,6 @@
 {
     "type": "object",
+    "required": ["street", "city", "country"],
     "properties": {
         "street": { "type": "string" },
         "city": { "type": "string" },

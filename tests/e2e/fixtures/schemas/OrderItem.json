@@ -1,5 +1,6 @@
 {
     "type": "object",
+    "required": ["productId", "quantity"],
     "properties": {
         "productId": {"type": "string"},
         "quantity":  {"type": "integer"}

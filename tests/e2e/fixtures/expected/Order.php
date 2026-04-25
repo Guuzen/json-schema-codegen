@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Dto;
 
 use App\Dto\address\Address;
+use Guuzen\JsonSchemaCodegen\Undefined;
 
 final class Order
 {
@@ -18,10 +19,6 @@ final class Order
          */
         public $status,
         /**
-         * @var non-empty-string
-         */
-        public $couponCode,
-        /**
          * @var int<1, 100>
          */
         public $quantity,
@@ -30,10 +27,6 @@ final class Order
          */
         public $address,
         /**
-         * @var Note|null
-         */
-        public $note,
-        /**
          * @var list<OrderItem>
          */
         public $items,
@@ -41,6 +34,14 @@ final class Order
          * @var CreditCardPayment|BankTransferPayment
          */
         public $payment,
+        /**
+         * @var non-empty-string|Undefined
+         */
+        public $couponCode = Undefined::Value,
+        /**
+         * @var Note|null|Undefined
+         */
+        public $note = Undefined::Value,
     ) {
     }
 }

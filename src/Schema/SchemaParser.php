@@ -28,7 +28,7 @@ final readonly class SchemaParser
     /**
      * @param array<string, mixed> $node
      */
-    private function parseSchemaNode(array $node, AbsoluteUri $schemaUri): Schema
+    private function parseSchemaNode(array $node, AbsoluteUri $schemaUri, bool $required = true): Schema
     {
         /** @var string|list<string>|null $rawType */
         $rawType = $node['type'] ?? null;
@@ -54,9 +54,21 @@ final readonly class SchemaParser
         if (isset($node['properties']) && is_array($node['properties'])) {
             /** @var array<string, array<string, mixed>> $rawProperties */
             $rawProperties = $node['properties'];
+            $rawRequiredProperties = is_array($node['required'] ?? null)
+                ? $node['required']
+                : [];
+            /** @var list<string> $requiredProperties */
+            $requiredProperties = array_values(array_filter(
+                $rawRequiredProperties,
+                static fn(mixed $propertyName): bool => is_string($propertyName),
+            ));
             $properties = [];
             foreach ($rawProperties as $name => $propertySchema) {
-                $properties[$name] = $this->parseSchemaNode($propertySchema, $schemaUri);
+                $properties[$name] = $this->parseSchemaNode(
+                    $propertySchema,
+                    $schemaUri,
+                    in_array($name, $requiredProperties, true),
+                );
             }
         }
 
@@ -101,6 +113,7 @@ final readonly class SchemaParser
 
         return new Schema(
             type: $type,
+            required: $required,
             properties: $properties,
             items: $items,
             ref: $ref,

@@ -38,6 +38,27 @@ final class AnnotationGeneratorTest extends TestCase
         );
     }
 
+    public function testOptionalPropertyWithoutDefaultBecomesUndefinedable(): void
+    {
+        $result = self::makeGenerator()->generate(new Schema(type: SchemaType::String, required: false));
+
+        self::assertSame('string|Undefined', $result->annotation);
+        self::assertSame(
+            [['alias' => 'Undefined', 'fqcn' => 'Guuzen\\JsonSchemaCodegen\\Undefined']],
+            $result->imports,
+        );
+    }
+
+    public function testOptionalPropertyWithDefaultKeepsOriginalAnnotation(): void
+    {
+        self::assertSame(
+            'string',
+            self::makeGenerator()->generate(
+                new Schema(type: SchemaType::String, required: false, default: new DefaultValue('guest'))
+            )->annotation,
+        );
+    }
+
     public function testObjectAnnotation(): void
     {
         $result = self::makeGenerator()->generate(new Schema(type: SchemaType::Object));

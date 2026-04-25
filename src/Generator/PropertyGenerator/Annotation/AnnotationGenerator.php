@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
+use Guuzen\JsonSchemaCodegen\Undefined;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\AnnotationResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
@@ -45,10 +46,26 @@ final readonly class AnnotationGenerator implements PropertyGenerator
         foreach ($this->resolvers as $resolver) {
             $resolved = $resolver->resolve($schema, $this);
             if ($resolved !== null) {
-                return $resolved;
+                return $this->resolveOptional($resolved, $schema);
             }
         }
 
-        return new ResolvedAnnotation('mixed', []);
+        return $this->resolveOptional(new ResolvedAnnotation('mixed', []), $schema);
+    }
+
+    private function resolveOptional(ResolvedAnnotation $resolved, Schema $schema): ResolvedAnnotation
+    {
+        if ($schema->required || $schema->default !== null) {
+            return $resolved;
+        }
+
+        if ($resolved->annotation === 'mixed' || str_contains($resolved->annotation, 'Undefined')) {
+            return $resolved;
+        }
+
+        return new ResolvedAnnotation(
+            $resolved->annotation . '|Undefined',
+            [...$resolved->imports, ['alias' => 'Undefined', 'fqcn' => Undefined::class]],
+        );
     }
 }

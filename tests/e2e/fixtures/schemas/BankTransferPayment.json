@@ -1,5 +1,6 @@
 {
     "type": "object",
+    "required": ["iban"],
     "properties": {
         "iban": {"type": "string"}
     }

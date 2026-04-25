@@ -17,6 +17,7 @@ use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FilesGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\CommentGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 
@@ -58,6 +59,7 @@ final class NetteFilesGeneratorFactory
                         new AnnotationModifier(
                             AnnotationGenerator::default($fqcnResolver, $schemaRegistry)
                         ),
+                        new OptionalModifier(new DefaultGenerator($fqcnResolver)),
                     ],
                 ),
             ],

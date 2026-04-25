@@ -13,6 +13,18 @@ final class ConstructorParameterOrder
      */
     public function order(Schema $schema): array
     {
-        return $schema->properties ?? [];
+        $required = [];
+        $optional = [];
+
+        foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
+            if ($propertySchema->required) {
+                $required[$propertyName] = $propertySchema;
+                continue;
+            }
+
+            $optional[$propertyName] = $propertySchema;
+        }
+
+        return array_merge($required, $optional);
     }
 }

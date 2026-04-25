@@ -1,5 +1,6 @@
 {
     "type": "object",
+    "required": ["customer", "status", "quantity", "address", "items", "payment"],
     "properties": {
         "customer": {"$ref": "Customer.json"},
         "status":   {"$ref": "OrderStatus.json"},
