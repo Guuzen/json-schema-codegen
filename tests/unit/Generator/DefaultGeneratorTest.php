@@ -79,6 +79,6 @@ final class DefaultGeneratorTest extends TestCase
     #[DataProvider('provideDefaults')]
     public function testDefault(Schema $schema, ?PropertyDefaultValue $expected): void
     {
-        self::assertEquals($expected, self::makeDefaultGenerator()->generate($schema));
+        self::assertEquals($expected, self::makeDefaultGenerator()->generate($schema, null));
     }
 }

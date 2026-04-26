@@ -13,7 +13,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 final readonly class CommentModifier implements PropertyModifier
 {
     /**
-     * @param PropertyGenerator<?string> $generator
+     * @param PropertyGenerator<?string, null> $generator
      */
     public function __construct(
         private PropertyGenerator $generator,
@@ -23,7 +23,7 @@ final readonly class CommentModifier implements PropertyModifier
 
     public function modify(object $context): void
     {
-        $comment = $this->generator->generate($context->propertySchema);
+        $comment = $this->generator->generate($context->propertySchema, null);
 
         if ($comment !== null) {
             $context->parameter->addComment($comment);

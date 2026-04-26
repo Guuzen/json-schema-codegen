@@ -6,6 +6,8 @@ namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\ResolvedAnnotation;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
@@ -17,30 +19,29 @@ use PHPUnit\Framework\TestCase;
 
 final class AnnotationGeneratorTest extends TestCase
 {
-    private static function makeGenerator(SchemaRegistry $registry = new SchemaRegistry([])): AnnotationGenerator
+    private static function generate(Schema $schema, SchemaRegistry $registry = new SchemaRegistry([])): ResolvedAnnotation
     {
-        return AnnotationGenerator::default(
+        $phpTypeGenerator = new PhpTypeGenerator(
             new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
             $registry,
         );
+
+        return AnnotationGenerator::default()->generate($schema, ['type' => $phpTypeGenerator->generate($schema)]);
     }
 
     public function testNoMatchingResolverReturnsMixed(): void
     {
-        self::assertSame('mixed', self::makeGenerator()->generate(new Schema())->annotation);
+        self::assertSame('mixed', self::generate(new Schema())->annotation);
     }
 
     public function testNoMatchingResolverWithDefaultValueReturnsMixed(): void
     {
-        self::assertSame(
-            'mixed',
-            self::makeGenerator()->generate(new Schema(default: new DefaultValue('some')))->annotation,
-        );
+        self::assertSame('mixed', self::generate(new Schema(default: new DefaultValue('some')))->annotation);
     }
 
     public function testOptionalPropertyWithoutDefaultBecomesUndefinedable(): void
     {
-        $result = self::makeGenerator()->generate(new Schema(type: SchemaType::String, required: false));
+        $result = self::generate(new Schema(type: SchemaType::String, required: false));
 
         self::assertSame('string|Undefined', $result->annotation);
         self::assertSame(
@@ -53,7 +54,7 @@ final class AnnotationGeneratorTest extends TestCase
     {
         self::assertSame(
             'string',
-            self::makeGenerator()->generate(
+            self::generate(
                 new Schema(type: SchemaType::String, required: false, default: new DefaultValue('guest'))
             )->annotation,
         );
@@ -61,9 +62,7 @@ final class AnnotationGeneratorTest extends TestCase
 
     public function testObjectAnnotation(): void
     {
-        $result = self::makeGenerator()->generate(new Schema(type: SchemaType::Object));
-
-        self::assertSame('object', $result->annotation);
+        self::assertSame('object', self::generate(new Schema(type: SchemaType::Object))->annotation);
     }
 
     /**
@@ -125,7 +124,7 @@ final class AnnotationGeneratorTest extends TestCase
             'file:///schemas/Tag.json' => new Schema(type: SchemaType::Object),
         ]);
 
-        self::assertSame($expected, self::makeGenerator($registry)->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema, $registry)->annotation);
     }
 
     /**
@@ -160,7 +159,7 @@ final class AnnotationGeneratorTest extends TestCase
             'file:///schemas/Tag.json' => new Schema(type: SchemaType::Object),
         ]);
 
-        self::assertSame($expected, self::makeGenerator($registry)->generate($schema)->imports);
+        self::assertSame($expected, self::generate($schema, $registry)->imports);
     }
 
     /**
@@ -277,7 +276,7 @@ final class AnnotationGeneratorTest extends TestCase
             'file:///schemas/Bird.json'   => $objectSchema,
         ]);
 
-        self::assertSame($expected, self::makeGenerator($registry)->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema, $registry)->annotation);
     }
 
     /**
@@ -330,7 +329,7 @@ final class AnnotationGeneratorTest extends TestCase
             'file:///schemas/Bird.json'   => $objectSchema,
         ]);
 
-        self::assertSame($expected, self::makeGenerator($registry)->generate($schema)->imports);
+        self::assertSame($expected, self::generate($schema, $registry)->imports);
     }
 
     /**
@@ -359,7 +358,7 @@ final class AnnotationGeneratorTest extends TestCase
         $registry = new SchemaRegistry([
             'file:///schemas/Address.json' => new Schema(type: SchemaType::Object),
         ]);
-        $result = self::makeGenerator($registry)->generate($schema);
+        $result = self::generate($schema, $registry);
 
         self::assertSame($expectedAnnotation, $result->annotation);
         self::assertSame($expectedImports, $result->imports);
@@ -393,7 +392,7 @@ final class AnnotationGeneratorTest extends TestCase
     {
         $refUri = new AbsoluteUri('file:///schemas/Inline.json');
         $registry = new SchemaRegistry([$refUri->value => $referencedSchema]);
-        $result = self::makeGenerator($registry)->generate(new Schema(ref: new Ref($refUri)));
+        $result = self::generate(new Schema(ref: new Ref($refUri)), $registry);
 
         self::assertSame($expected, $result->annotation);
         self::assertSame([], $result->imports);
@@ -422,7 +421,7 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideStringAnnotations')]
     public function testStringAnnotation(Schema $schema, string $expected): void
     {
-        self::assertSame($expected, self::makeGenerator()->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema)->annotation);
     }
 
     /**
@@ -448,7 +447,7 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideIntegerAnnotations')]
     public function testIntegerAnnotation(Schema $schema, string $expected): void
     {
-        self::assertSame($expected, self::makeGenerator()->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema)->annotation);
     }
 
     /**
@@ -467,7 +466,7 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideNumberAnnotations')]
     public function testNumberAnnotation(Schema $schema, string $expected): void
     {
-        self::assertSame($expected, self::makeGenerator()->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema)->annotation);
     }
 
     /**
@@ -485,7 +484,7 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideBooleanAnnotations')]
     public function testBooleanAnnotation(Schema $schema, string $expected): void
     {
-        self::assertSame($expected, self::makeGenerator()->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema)->annotation);
     }
 
     /**
@@ -503,7 +502,7 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideNullAnnotations')]
     public function testNullAnnotation(Schema $schema, string $expected): void
     {
-        self::assertSame($expected, self::makeGenerator()->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema)->annotation);
     }
 
     /**
@@ -526,6 +525,6 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideEnumAnnotations')]
     public function testEnumAnnotation(Schema $schema, string $expected): void
     {
-        self::assertSame($expected, self::makeGenerator()->generate($schema)->annotation);
+        self::assertSame($expected, self::generate($schema)->annotation);
     }
 }

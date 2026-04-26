@@ -13,6 +13,6 @@ final class CommentGeneratorTest extends TestCase
 {
     public function testCommentIsNullWhenSchemaHasNoDescription(): void
     {
-        self::assertNull(new CommentGenerator()->generate(new Schema(type: SchemaType::String)));
+        self::assertNull(new CommentGenerator()->generate(new Schema(type: SchemaType::String), null));
     }
 }

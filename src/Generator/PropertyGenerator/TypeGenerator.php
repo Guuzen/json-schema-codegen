@@ -4,115 +4,82 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
 
-use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\BoolType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ClassRefType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\EnumLiteralType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\FloatType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ListType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\MixedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\NullType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ObjectType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\StringType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UndefinedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Undefined;
 
 /**
- * @implements PropertyGenerator<ResolvedTypes>
+ * @implements PropertyGenerator<ResolvedTypes, array{type: PhpType}>
  */
 final readonly class TypeGenerator implements PropertyGenerator
 {
-    public function __construct(
-        private FqcnResolver $fqcnResolver,
-        private SchemaRegistry $registry,
-    ) {
+    public function generate(Schema $schema, mixed $params): ResolvedTypes
+    {
+        return $this->render($params['type']);
     }
 
-    /**
-     */
-    public function generate(Schema $schema): ResolvedTypes
+    public function render(PhpType $type): ResolvedTypes
     {
-        if ($schema->ref !== null) {
-            $referencedSchema = $this->registry->get($schema->ref->uri);
-
-            if ($referencedSchema->type === SchemaType::Object) {
-                $fqcn = $this->fqcnResolver->fromUri($schema->ref->uri);
-                $alias = $schema->title ?? $fqcn->className();
-
-                return $this->withUndefinedIfNeeded(new ResolvedTypes(
-                    [$alias],
-                    [['alias' => $alias, 'fqcn' => $fqcn->fqcn]],
-                ), $schema);
-            }
-
-            return $this->withUndefinedIfNeeded($this->generate($referencedSchema), $schema);
-        }
-
-        if ($schema->oneOf !== null) {
-            return $this->withUndefinedIfNeeded($this->mergeResolvedTypes(array_map(
-                fn(Schema $branch): ResolvedTypes => $branch->type === SchemaType::Null
-                    ? new ResolvedTypes([], [])
-                    : $this->generate($branch),
-                $schema->oneOf,
-            )), $schema);
-        }
-
-        if (is_array($schema->type)) {
-            return $this->withUndefinedIfNeeded($this->mergeResolvedTypes(array_map(
-                fn(SchemaType $type): ResolvedTypes => $type === SchemaType::Null
-                    ? new ResolvedTypes([], [])
-                    : $this->generate(new Schema(type: $type)),
-                $schema->type,
-            )), $schema);
-        }
-
-        if ($schema->enum !== null && $schema->type === null) {
-            $types = [];
-            if (array_filter($schema->enum, 'is_string') !== []) {
-                $types[] = 'string';
-            }
-            if (array_filter($schema->enum, 'is_int') !== []) {
-                $types[] = 'integer';
-            }
-
-            return $this->withUndefinedIfNeeded(new ResolvedTypes($types, []), $schema);
-        }
-
-        return $this->withUndefinedIfNeeded(match ($schema->type) {
-            SchemaType::String => new ResolvedTypes(['string'], []),
-            SchemaType::Integer => new ResolvedTypes(['integer'], []),
-            SchemaType::Number => new ResolvedTypes(['float'], []),
-            SchemaType::Boolean => new ResolvedTypes(['bool'], []),
-            SchemaType::Array => new ResolvedTypes(['list'], []),
-            SchemaType::Object => new ResolvedTypes(['object'], []),
-            default => new ResolvedTypes([], []),
-        }, $schema);
+        return match (true) {
+            $type instanceof StringType      => new ResolvedTypes(['string'], []),
+            $type instanceof IntType         => new ResolvedTypes(['integer'], []),
+            $type instanceof FloatType       => new ResolvedTypes(['float'], []),
+            $type instanceof BoolType        => new ResolvedTypes(['bool'], []),
+            $type instanceof NullType        => new ResolvedTypes([], []),
+            $type instanceof ObjectType      => new ResolvedTypes(['object'], []),
+            $type instanceof MixedType       => new ResolvedTypes([], []),
+            $type instanceof ListType        => new ResolvedTypes(['list'], []),
+            $type instanceof ClassRefType    => new ResolvedTypes([$type->alias], [['alias' => $type->alias, 'fqcn' => $type->fqcn]]),
+            $type instanceof EnumLiteralType => $this->renderEnum($type),
+            $type instanceof UnionType       => $this->renderUnion($type),
+            $type instanceof UndefinedType   => new ResolvedTypes(['Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
+            default                          => new ResolvedTypes([], []),
+        };
     }
 
-    /**
-     * @param list<ResolvedTypes> $resolvedTypes
-     */
-    private function mergeResolvedTypes(array $resolvedTypes): ResolvedTypes
+    private function renderEnum(EnumLiteralType $type): ResolvedTypes
     {
-        $typesByKey = [];
+        $types = [];
+
+        if (array_filter($type->values, 'is_string') !== []) {
+            $types[] = 'string';
+        }
+        if (array_filter($type->values, 'is_int') !== []) {
+            $types[] = 'integer';
+        }
+
+        return new ResolvedTypes($types, []);
+    }
+
+    private function renderUnion(UnionType $type): ResolvedTypes
+    {
+        $typesByKey   = [];
         $importsByKey = [];
 
-        foreach ($resolvedTypes as $resolvedType) {
-            foreach ($resolvedType->types as $type) {
-                $typesByKey[$type] = $type;
-            }
+        foreach ($type->types as $branch) {
+            $rendered = $this->render($branch);
 
-            foreach ($resolvedType->imports as $import) {
+            foreach ($rendered->types as $t) {
+                $typesByKey[$t] = $t;
+            }
+            foreach ($rendered->imports as $import) {
                 $importsByKey[$import['alias'] . ':' . $import['fqcn']] = $import;
             }
         }
 
         return new ResolvedTypes(array_values($typesByKey), array_values($importsByKey));
-    }
-
-    private function withUndefinedIfNeeded(ResolvedTypes $resolvedTypes, Schema $schema): ResolvedTypes
-    {
-        if (!$schema->required && $schema->default === null) {
-            return $this->mergeResolvedTypes([
-                $resolvedTypes,
-                new ResolvedTypes(['Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
-            ]);
-        }
-
-        return $resolvedTypes;
     }
 }

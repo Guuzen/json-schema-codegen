@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\ResolvedTypes;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
@@ -19,31 +20,30 @@ use PHPUnit\Framework\TestCase;
 
 final class TypeGeneratorTest extends TestCase
 {
-    private static function makeGenerator(SchemaRegistry $registry = new SchemaRegistry([])): TypeGenerator
+    private static function generate(Schema $schema, SchemaRegistry $registry = new SchemaRegistry([])): ResolvedTypes
     {
-        return new TypeGenerator(
+        $phpTypeGenerator = new PhpTypeGenerator(
             new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
             $registry,
         );
+
+        return new TypeGenerator()->generate($schema, ['type' => $phpTypeGenerator->generate($schema)]);
     }
 
     public function testOptionalWithoutDefaultAddsUndefined(): void
     {
-        $result = self::makeGenerator()->generate(new Schema(type: SchemaType::String, required: false));
-
         self::assertEquals(
             new ResolvedTypes(['string', 'Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
-            $result,
+            self::generate(new Schema(type: SchemaType::String, required: false)),
         );
     }
 
     public function testOptionalWithDefaultDoesNotAddUndefined(): void
     {
-        $result = self::makeGenerator()->generate(
-            new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo')),
+        self::assertEquals(
+            new ResolvedTypes(['string'], []),
+            self::generate(new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo'))),
         );
-
-        self::assertEquals(new ResolvedTypes(['string'], []), $result);
     }
 
     /**
@@ -67,7 +67,7 @@ final class TypeGeneratorTest extends TestCase
     #[DataProvider('provideScalarTypes')]
     public function testScalarType(Schema $schema, ResolvedTypes $expected): void
     {
-        self::assertEquals($expected, self::makeGenerator()->generate($schema));
+        self::assertEquals($expected, self::generate($schema));
     }
 
     /**
@@ -115,7 +115,7 @@ final class TypeGeneratorTest extends TestCase
             'file:///schemas/OrderStatus.json'      => new Schema(enum: ['pending', 'processing', 'shipped']),
         ]);
 
-        self::assertEquals($expected, self::makeGenerator($registry)->generate($schema));
+        self::assertEquals($expected, self::generate($schema, $registry));
     }
 
     /**
@@ -187,6 +187,6 @@ final class TypeGeneratorTest extends TestCase
             'file:///schemas/BankTransferPayment.json'  => new Schema(type: SchemaType::Object),
         ]);
 
-        self::assertEquals($expected, self::makeGenerator($registry)->generate($schema));
+        self::assertEquals($expected, self::generate($schema, $registry));
     }
 }

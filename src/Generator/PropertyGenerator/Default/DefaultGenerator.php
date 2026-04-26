@@ -9,7 +9,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
 /**
- * @implements PropertyGenerator<?DefaultValue>
+ * @implements PropertyGenerator<?DefaultValue, null>
  */
 final readonly class DefaultGenerator implements PropertyGenerator
 {
@@ -18,7 +18,7 @@ final readonly class DefaultGenerator implements PropertyGenerator
     ) {
     }
 
-    public function generate(Schema $schema): ?DefaultValue
+    public function generate(Schema $schema, mixed $params): ?DefaultValue
     {
         $schemaDefault = $schema->default;
         if ($schemaDefault === null) {

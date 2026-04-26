@@ -17,7 +17,7 @@ use Nette\PhpGenerator\Literal;
 final readonly class OptionalModifier implements PropertyModifier
 {
     /**
-     * @param PropertyGenerator<?DefaultValue> $generator
+     * @param PropertyGenerator<?DefaultValue, null> $generator
      */
     public function __construct(
         private PropertyGenerator $generator,
@@ -30,7 +30,8 @@ final readonly class OptionalModifier implements PropertyModifier
             return;
         }
 
-        $default = $this->generator->generate($context->propertySchema);
+        $default = $this->generator->generate($context->propertySchema, null);
+
         if ($default !== null) {
             $value = $default->value instanceof NewObjectDefaultValue
                 ? Literal::new($default->value->className, $default->value->args)

@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Filesystem\PutContents;
 use Guuzen\JsonSchemaCodegen\Filesystem\GetContents;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\YamlDecoder;
 use Guuzen\JsonSchemaCodegen\Filesystem\OutputPathTransformer;
@@ -43,6 +44,8 @@ final class NetteFilesGeneratorFactory
         );
         $schemaRegistry = new SchemaRegistry();
 
+        $phpTypeGenerator = new PhpTypeGenerator($fqcnResolver, $schemaRegistry);
+
         return new FilesGenerator(
             pathCollector: PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
             fileLoader: new GetContents(),
@@ -58,9 +61,13 @@ final class NetteFilesGeneratorFactory
                     modifiers: [
                         new CommentModifier(new CommentGenerator()),
                         new AnnotationModifier(
-                            AnnotationGenerator::default($fqcnResolver, $schemaRegistry)
+                            generator: AnnotationGenerator::default(),
+                            phpTypeGenerator: $phpTypeGenerator,
                         ),
-                        new SymfonyValidationModifier(new TypeGenerator($fqcnResolver, $schemaRegistry)),
+                        new SymfonyValidationModifier(
+                            typeGenerator: new TypeGenerator(),
+                            phpTypeGenerator: $phpTypeGenerator,
+                        ),
                         new OptionalModifier(new DefaultGenerator($fqcnResolver)),
                     ],
                 ),
