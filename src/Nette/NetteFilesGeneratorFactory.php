@@ -16,10 +16,10 @@ use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FilesGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\CommentGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\DefaultCommentGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\DefaultTypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 
@@ -59,16 +59,16 @@ final class NetteFilesGeneratorFactory
                     createPhpFile: new CreatePhpFile($fqcnResolver),
                     constructorParameterOrder: new ConstructorParameterOrder(),
                     modifiers: [
-                        new CommentModifier(new CommentGenerator()),
+                        new CommentModifier(new DefaultCommentGenerator()),
                         new AnnotationModifier(
-                            generator: AnnotationGenerator::default(),
+                            generator: new DefaultAnnotationGenerator(),
                             phpTypeGenerator: $phpTypeGenerator,
                         ),
                         new SymfonyValidationModifier(
-                            typeGenerator: new TypeGenerator(),
+                            typeGenerator: new DefaultTypeGenerator(),
                             phpTypeGenerator: $phpTypeGenerator,
                         ),
-                        new OptionalModifier(new DefaultGenerator($fqcnResolver)),
+                        new OptionalModifier(new DefaultDefaultGenerator($fqcnResolver)),
                     ],
                 ),
             ],

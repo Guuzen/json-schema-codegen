@@ -4,168 +4,74 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
-use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\DefaultTypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\BoolType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ClassRefType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\EnumLiteralType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\FloatType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ListType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\MixedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\NullType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ObjectType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\StringType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UndefinedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\ResolvedTypes;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
-use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use Guuzen\JsonSchemaCodegen\Undefined;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class TypeGeneratorTest extends TestCase
 {
-    private static function generate(Schema $schema, SchemaRegistry $registry = new SchemaRegistry([])): ResolvedTypes
-    {
-        $phpTypeGenerator = new PhpTypeGenerator(
-            new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
-            $registry,
-        );
-
-        return new TypeGenerator()->generate($schema, ['type' => $phpTypeGenerator->generate($schema)]);
-    }
-
-    public function testOptionalWithoutDefaultAddsUndefined(): void
-    {
-        self::assertEquals(
-            new ResolvedTypes(['string', 'Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
-            self::generate(new Schema(type: SchemaType::String, required: false)),
-        );
-    }
-
-    public function testOptionalWithDefaultDoesNotAddUndefined(): void
-    {
-        self::assertEquals(
-            new ResolvedTypes(['string'], []),
-            self::generate(new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo'))),
-        );
-    }
-
     /**
-     * @return iterable<string, array{Schema, ResolvedTypes}>
+     * @return iterable<string, array{PhpType, ResolvedTypes}>
      */
-    public static function provideScalarTypes(): iterable
+    public static function provideTypes(): iterable
     {
-        yield 'string'  => [new Schema(type: SchemaType::String), new ResolvedTypes(['string'], [])];
-        yield 'integer' => [new Schema(type: SchemaType::Integer), new ResolvedTypes(['integer'], [])];
-        yield 'number'  => [new Schema(type: SchemaType::Number), new ResolvedTypes(['float'], [])];
-        yield 'boolean' => [new Schema(type: SchemaType::Boolean), new ResolvedTypes(['bool'], [])];
-        yield 'array'   => [new Schema(type: SchemaType::Array), new ResolvedTypes(['list'], [])];
-        yield 'object'  => [new Schema(type: SchemaType::Object), new ResolvedTypes(['object'], [])];
-        yield 'null'         => [new Schema(type: SchemaType::Null), new ResolvedTypes([], [])];
-        yield 'unknown'      => [new Schema(), new ResolvedTypes([], [])];
-        yield 'string enum'       => [new Schema(enum: ['a', 'b']), new ResolvedTypes(['string'], [])];
-        yield 'integer enum'      => [new Schema(enum: [1, 2]), new ResolvedTypes(['integer'], [])];
-        yield 'mixed int+str enum' => [new Schema(enum: ['a', 1]), new ResolvedTypes(['string', 'integer'], [])];
-    }
-
-    #[DataProvider('provideScalarTypes')]
-    public function testScalarType(Schema $schema, ResolvedTypes $expected): void
-    {
-        self::assertEquals($expected, self::generate($schema));
-    }
-
-    /**
-     * @return iterable<string, array{Schema, ResolvedTypes}>
-     */
-    public static function provideRefTypes(): iterable
-    {
-        yield 'ref to scalar' => [
-            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Quantity.json'))),
-            new ResolvedTypes(['integer'], []),
+        // Primitives
+        yield 'string'    => [new StringType(), new ResolvedTypes(['string'], [])];
+        yield 'integer'   => [new IntType(), new ResolvedTypes(['integer'], [])];
+        yield 'float'     => [new FloatType(), new ResolvedTypes(['float'], [])];
+        yield 'bool'      => [new BoolType(), new ResolvedTypes(['bool'], [])];
+        yield 'null'      => [new NullType(), new ResolvedTypes([], [])];
+        yield 'object'    => [new ObjectType(), new ResolvedTypes(['object'], [])];
+        yield 'mixed'     => [new MixedType(), new ResolvedTypes([], [])];
+        yield 'list'      => [new ListType(new MixedType()), new ResolvedTypes(['list'], [])];
+        yield 'undefined' => [
+            new UndefinedType(),
+            new ResolvedTypes(['Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
         ];
-        yield 'ref to object' => [
-            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/address/Address.json')), title: 'HomeAddress'),
-            new ResolvedTypes(
-                ['HomeAddress'],
-                [['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address']],
-            ),
+
+        // Class refs
+        yield 'class ref' => [
+            new ClassRefType('HomeAddress', 'App\\Dto\\address\\Address'),
+            new ResolvedTypes(['HomeAddress'], [['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address']]),
         ];
-        yield 'ref to string enum' => [
-            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/OrderStatus.json'))),
+
+        // Enums
+        yield 'string enum'        => [new EnumLiteralType(['a', 'b']), new ResolvedTypes(['string'], [])];
+        yield 'integer enum'       => [new EnumLiteralType([1, 2]), new ResolvedTypes(['integer'], [])];
+        yield 'mixed int+str enum' => [new EnumLiteralType(['a', 1]), new ResolvedTypes(['string', 'integer'], [])];
+
+        // Unions
+        yield 'union string null' => [
+            new UnionType([new StringType(), new NullType()]),
             new ResolvedTypes(['string'], []),
         ];
-        yield 'optional ref includes undefined' => [
-            new Schema(
-                required: false,
-                ref: new Ref(new AbsoluteUri('file:///schemas/address/Address.json')),
-                title: 'HomeAddress',
-            ),
-            new ResolvedTypes(
-                ['HomeAddress', 'Undefined'],
-                [
-                    ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address'],
-                    ['alias' => 'Undefined', 'fqcn' => Undefined::class],
-                ],
-            ),
-        ];
-    }
-
-    #[DataProvider('provideRefTypes')]
-    public function testRefType(Schema $schema, ResolvedTypes $expected): void
-    {
-        $registry = new SchemaRegistry([
-            'file:///schemas/Quantity.json'         => new Schema(type: SchemaType::Integer, minimum: 1, maximum: 100),
-            'file:///schemas/address/Address.json'  => new Schema(type: SchemaType::Object),
-            'file:///schemas/OrderStatus.json'      => new Schema(enum: ['pending', 'processing', 'shipped']),
-        ]);
-
-        self::assertEquals($expected, self::generate($schema, $registry));
-    }
-
-    /**
-     * @return iterable<string, array{Schema, ResolvedTypes}>
-     */
-    public static function provideUnionTypes(): iterable
-    {
-        yield 'nullable string from type array' => [
-            new Schema(type: [SchemaType::String, SchemaType::Null]),
-            new ResolvedTypes(['string'], []),
-        ];
-        yield 'nullable string from oneOf' => [
-            new Schema(oneOf: [new Schema(type: SchemaType::String), new Schema(type: SchemaType::Null)]),
-            new ResolvedTypes(['string'], []),
-        ];
-        yield 'multi type union' => [
-            new Schema(type: [SchemaType::Integer, SchemaType::String]),
+        yield 'union int string' => [
+            new UnionType([new IntType(), new StringType()]),
             new ResolvedTypes(['integer', 'string'], []),
         ];
-        yield 'multi branch oneOf' => [
-            new Schema(oneOf: [new Schema(type: SchemaType::Integer), new Schema(type: SchemaType::String)]),
-            new ResolvedTypes(['integer', 'string'], []),
+        yield 'union ref null' => [
+            new UnionType([new ClassRefType('HomeAddress', 'App\\Dto\\address\\Address'), new NullType()]),
+            new ResolvedTypes(['HomeAddress'], [['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address']]),
         ];
-        yield 'optional multi type union includes undefined' => [
-            new Schema(type: [SchemaType::Integer, SchemaType::String], required: false),
-            new ResolvedTypes(
-                ['integer', 'string', 'Undefined'],
-                [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
-        ];
-        yield 'nullable ref from oneOf' => [
-            new Schema(oneOf: [
-                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Quantity.json'))),
-                new Schema(type: SchemaType::Null),
-            ]),
-            new ResolvedTypes(['integer'], []),
-        ];
-        yield 'nullable ref to object from oneOf' => [
-            new Schema(oneOf: [
-                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/address/Address.json')), title: 'HomeAddress'),
-                new Schema(type: SchemaType::Null),
-            ]),
-            new ResolvedTypes(
-                ['HomeAddress'],
-                [['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address']],
-            ),
-        ];
-        yield 'multi ref oneOf' => [
-            new Schema(oneOf: [
-                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/CreditCardPayment.json'))),
-                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/BankTransferPayment.json'))),
+        yield 'union two refs' => [
+            new UnionType([
+                new ClassRefType('CreditCardPayment', 'App\\Dto\\CreditCardPayment'),
+                new ClassRefType('BankTransferPayment', 'App\\Dto\\BankTransferPayment'),
             ]),
             new ResolvedTypes(
                 ['CreditCardPayment', 'BankTransferPayment'],
@@ -175,18 +81,35 @@ final class TypeGeneratorTest extends TestCase
                 ],
             ),
         ];
+        yield 'union string undefined (optional)' => [
+            new UnionType([new StringType(), new UndefinedType()]),
+            new ResolvedTypes(['string', 'Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
+        ];
+        yield 'union ref undefined (optional)' => [
+            new UnionType([
+                new ClassRefType('HomeAddress', 'App\\Dto\\address\\Address'),
+                new UndefinedType(),
+            ]),
+            new ResolvedTypes(
+                ['HomeAddress', 'Undefined'],
+                [
+                    ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address'],
+                    ['alias' => 'Undefined', 'fqcn' => Undefined::class],
+                ],
+            ),
+        ];
+        yield 'union int string undefined (optional multi)' => [
+            new UnionType([new IntType(), new StringType(), new UndefinedType()]),
+            new ResolvedTypes(
+                ['integer', 'string', 'Undefined'],
+                [['alias' => 'Undefined', 'fqcn' => Undefined::class]],
+            ),
+        ];
     }
 
-    #[DataProvider('provideUnionTypes')]
-    public function testUnionType(Schema $schema, ResolvedTypes $expected): void
+    #[DataProvider('provideTypes')]
+    public function testType(PhpType $type, ResolvedTypes $expected): void
     {
-        $registry = new SchemaRegistry([
-            'file:///schemas/Quantity.json'             => new Schema(type: SchemaType::Integer, minimum: 1, maximum: 100),
-            'file:///schemas/address/Address.json'      => new Schema(type: SchemaType::Object),
-            'file:///schemas/CreditCardPayment.json'    => new Schema(type: SchemaType::Object),
-            'file:///schemas/BankTransferPayment.json'  => new Schema(type: SchemaType::Object),
-        ]);
-
-        self::assertEquals($expected, self::generate($schema, $registry));
+        self::assertEquals($expected, new DefaultTypeGenerator()->generate($type));
     }
 }

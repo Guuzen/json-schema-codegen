@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultValue;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\NewObjectDefaultValue;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Guuzen\JsonSchemaCodegen\Undefined;
@@ -16,11 +15,8 @@ use Nette\PhpGenerator\Literal;
  */
 final readonly class OptionalModifier implements PropertyModifier
 {
-    /**
-     * @param PropertyGenerator<?DefaultValue, null> $generator
-     */
     public function __construct(
-        private PropertyGenerator $generator,
+        private DefaultGenerator $generator,
     ) {
     }
 
@@ -30,7 +26,7 @@ final readonly class OptionalModifier implements PropertyModifier
             return;
         }
 
-        $default = $this->generator->generate($context->propertySchema, null);
+        $default = $this->generator->generate($context->propertySchema);
 
         if ($default !== null) {
             $value = $default->value instanceof NewObjectDefaultValue

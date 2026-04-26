@@ -6,7 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultValue as PropertyDefaultValue;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\NewObjectDefaultValue;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
@@ -18,9 +18,9 @@ use PHPUnit\Framework\TestCase;
 
 final class DefaultGeneratorTest extends TestCase
 {
-    private static function makeDefaultGenerator(): DefaultGenerator
+    private static function makeDefaultGenerator(): DefaultDefaultGenerator
     {
-        return new DefaultGenerator(
+        return new DefaultDefaultGenerator(
             new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
         );
     }
@@ -79,6 +79,6 @@ final class DefaultGeneratorTest extends TestCase
     #[DataProvider('provideDefaults')]
     public function testDefault(Schema $schema, ?PropertyDefaultValue $expected): void
     {
-        self::assertEquals($expected, self::makeDefaultGenerator()->generate($schema, null));
+        self::assertEquals($expected, self::makeDefaultGenerator()->generate($schema));
     }
 }

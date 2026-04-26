@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\CommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 
 /**
@@ -12,18 +12,15 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
  */
 final readonly class CommentModifier implements PropertyModifier
 {
-    /**
-     * @param PropertyGenerator<?string, null> $generator
-     */
     public function __construct(
-        private PropertyGenerator $generator,
+        private CommentGenerator $generator,
     )
     {
     }
 
     public function modify(object $context): void
     {
-        $comment = $this->generator->generate($context->propertySchema, null);
+        $comment = $this->generator->generate($context->propertySchema);
 
         if ($comment !== null) {
             $context->parameter->addComment($comment);

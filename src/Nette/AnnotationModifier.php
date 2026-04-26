@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\ResolvedAnnotation;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 
@@ -15,11 +13,8 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
  */
 final readonly class AnnotationModifier implements PropertyModifier
 {
-    /**
-     * @param PropertyGenerator<ResolvedAnnotation, array{type: PhpType}> $generator
-     */
     public function __construct(
-        private PropertyGenerator $generator,
+        private AnnotationGenerator $generator,
         private PhpTypeGenerator $phpTypeGenerator,
     )
     {
@@ -29,7 +24,7 @@ final readonly class AnnotationModifier implements PropertyModifier
     {
         $type = $this->phpTypeGenerator->generate($context->propertySchema);
 
-        $resolved = $this->generator->generate($context->propertySchema, ['type' => $type]);
+        $resolved = $this->generator->generate($type);
 
         foreach ($resolved->imports as $import) {
             $context->namespace->addUse($import['fqcn'], $import['alias']);
