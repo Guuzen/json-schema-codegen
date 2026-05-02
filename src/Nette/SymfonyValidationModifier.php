@@ -12,7 +12,9 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\S
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
+use Nette\PhpGenerator\Attribute;
 use Nette\PhpGenerator\Literal;
+use Nette\PhpGenerator\PhpNamespace;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\Choice;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
@@ -38,17 +40,78 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
     {
         $type = $this->typeGenerator->generate($context->propertySchema);
 
-        $resolvedTypes = $this->typeRenderer->render($type);
-        if ($resolvedTypes === []) {
-            return;
+        $context->namespace->addUse('Symfony\Component\Validator\Constraints', 'Assert');
+
+        $attributes = $this->collectItemConstraints($type, $context->namespace);
+        $attributes[] = $this->typeValid($type);
+
+        foreach (array_filter($attributes) as $attribute) {
+            $context->parameter->addAttribute($attribute->getName(), $attribute->getArguments());
+        }
+    }
+
+    private function typeAll(PhpType $type, PhpNamespace $namespace): ?Attribute
+    {
+        if (!$type instanceof ListType) {
+            return null;
         }
 
-        $context->namespace->addUse('Symfony\Component\Validator\Constraints', 'Assert');
+        $itemConstraints = array_values(
+            array_filter($this->collectItemConstraints($type->itemType, $namespace))
+        );
+
+        if ($itemConstraints === []) {
+            return null;
+        }
+
+        $lines = ['['];
+
+        foreach ($itemConstraints as $constraint) {
+            $class = $namespace->simplifyType($constraint->getName());
+            $lines[] = '    ' . Literal::new($class, $constraint->getArguments()) . ',';
+        }
+
+        $lines[] = ']';
+
+        $constraintCode = implode("\n", $lines);
+
+        return new Attribute(All::class, [new Literal($constraintCode)]);
+    }
+
+    private function typeValid(PhpType $type): ?Attribute
+    {
+        if (!$type->containsClassRef()) {
+            return null;
+        }
+
+        return new Attribute(Valid::class, []);
+    }
+
+    /**
+     * @return non-empty-list<?Attribute>
+     */
+    private function collectItemConstraints(PhpType $type, PhpNamespace $namespace): array
+    {
+        $constraints = [];
+        $constraints[] = $this->typeAttribute($type, $namespace);
+        $constraints[] = $this->typeNotNull($type);
+        $constraints[] = $this->typeUuid($type);
+        $constraints[] = $this->typeGte($type);
+        $constraints[] = $this->typeLte($type);
+        $constraints[] = $this->typeEnum($type);
+        $constraints[] = $this->typeAll($type, $namespace);
+
+        return $constraints;
+    }
+
+    private function typeAttribute(PhpType $type, PhpNamespace $namespace): ?Attribute
+    {
+        $renderedTypes = $this->typeRenderer->render($type);
 
         $withImports = [];
         $withoutImports = [];
 
-        foreach ($resolvedTypes as $resolvedType) {
+        foreach ($renderedTypes as $resolvedType) {
             if ($resolvedType->import === null) {
                 $withoutImports[] = $resolvedType;
             } else {
@@ -57,7 +120,7 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         }
 
         foreach ($withImports as $resolvedType) {
-            $context->namespace->addUse(
+            $namespace->addUse(
                 /** @phpstan-ignore offsetAccess.notFound */
                 $resolvedType->import['fqcn'],
                 /** @phpstan-ignore offsetAccess.notFound */
@@ -68,126 +131,68 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         $types = [];
 
         foreach ($withoutImports as $resolvedType) {
-            $types[] = $resolvedType->type;
+            $types[] = new Literal("'" . $resolvedType->type . "'");
         }
 
         foreach ($withImports as $resolvedType) {
             $types[] = new Literal($resolvedType->type . '::class');
         }
 
-        if (count($types) === 1) {
-            $context->parameter->addAttribute(Type::class, [$types[0]]);
-        } else {
-            $context->parameter->addAttribute(Type::class, [$types]);
+        $typesNumber = count($types);
+
+        if ($typesNumber === 1) {
+            return new Attribute(Type::class, [$types[0]]);
         }
 
-        if (!$type->isNullable()) {
-            $context->parameter->addAttribute(NotNull::class);
+        if ($typesNumber > 1) {
+            return new Attribute(Type::class, [$types]);
         }
 
-        if ($type instanceof EnumLiteralType) {
-            $context->parameter->addAttribute(Choice::class, ['choices' => $type->values]);
-        }
-
-        if ($type instanceof IntType) {
-            if ($type->min !== null) {
-                $context->parameter->addAttribute(GreaterThanOrEqual::class, [$type->min]);
-            }
-            if ($type->max !== null) {
-                $context->parameter->addAttribute(LessThanOrEqual::class, [$type->max]);
-            }
-        }
-
-        if ($type instanceof StringType && $type->format === 'uuid') {
-            $context->parameter->addAttribute(Uuid::class);
-        }
-
-        if ($type instanceof ListType) {
-            $itemConstraints = $this->collectItemConstraints($type->itemType);
-            if ($itemConstraints !== []) {
-                $constraintCode = $this->formatConstraintsArray($itemConstraints);
-                $context->parameter->addAttribute(All::class, [new Literal($constraintCode)]);
-            }
-            if ($type->itemType->containsClassRef()) {
-                $context->parameter->addAttribute(Valid::class);
-            }
-        } elseif ($type->containsClassRef()) {
-            $context->parameter->addAttribute(Valid::class);
-        }
+        return null;
     }
 
-    /**
-     * @param array<Literal> $constraints
-     */
-    private function formatConstraintsArray(array $constraints): string
+    private function typeNotNull(PhpType $type): ?Attribute
     {
-        $lines = ['['];
-        foreach ($constraints as $constraint) {
-            $lines[] = '    ' . $constraint . ',';
+        if ($type->isNullable()) {
+            return null;
         }
-        $lines[] = ']';
-        return implode("\n", $lines);
+
+        return new Attribute(NotNull::class, []);
     }
 
-    /**
-     * @return array<Literal>
-     */
-    private function collectItemConstraints(PhpType $itemType): array
+    private function typeEnum(PhpType $type): ?Attribute
     {
-        $constraints = [];
-
-        $resolvedTypes = $this->typeRenderer->render($itemType);
-        if ($resolvedTypes !== []) {
-            $withImports = [];
-            $withoutImports = [];
-
-            foreach ($resolvedTypes as $resolvedType) {
-                if ($resolvedType->import === null) {
-                    $withoutImports[] = $resolvedType;
-                } else {
-                    $withImports[] = $resolvedType;
-                }
-            }
-
-            $types = [];
-
-            foreach ($withoutImports as $resolvedType) {
-                $types[] = new Literal("'" . $resolvedType->type . "'");
-            }
-
-            foreach ($withImports as $resolvedType) {
-                $types[] = new Literal($resolvedType->type . '::class');
-            }
-
-            if (count($types) === 1) {
-                $constraints[] = Literal::new('Assert\\Type', [$types[0]]);
-            } else {
-                $constraints[] = Literal::new('Assert\\Type', [$types]);
-            }
+        if (!$type instanceof EnumLiteralType) {
+            return null;
         }
 
-        if (!$itemType->isNullable()) {
-            $constraints[] = Literal::new('Assert\\NotNull', []);
+        return new Attribute(Choice::class, ['choices' => $type->values]);
+    }
+
+    private function typeGte(PhpType $type): ?Attribute
+    {
+        if (!$type instanceof IntType || $type->min === null) {
+            return null;
         }
 
-        if ($itemType instanceof StringType && $itemType->format === 'uuid') {
-            $constraints[] = Literal::new('Assert\\Uuid', []);
+        return new Attribute(GreaterThanOrEqual::class, [$type->min]);
+    }
+
+    private function typeLte(PhpType $type): ?Attribute
+    {
+        if (!$type instanceof IntType || $type->max === null) {
+            return null;
         }
 
-        if ($itemType instanceof IntType) {
-            if ($itemType->min !== null) {
-                $constraints[] = Literal::new('Assert\\GreaterThanOrEqual', [$itemType->min]);
-            }
-            if ($itemType->max !== null) {
-                $constraints[] = Literal::new('Assert\\LessThanOrEqual', [$itemType->max]);
-            }
+        return new Attribute(LessThanOrEqual::class, [$type->max]);
+    }
+
+    private function typeUuid(PhpType $type): ?Attribute
+    {
+        if (!$type instanceof StringType || $type->format !== 'uuid') {
+            return null;
         }
 
-        if ($itemType instanceof EnumLiteralType) {
-            $quoted = array_map(fn($v) => new Literal("'" . $v . "'"), $itemType->values);
-            $constraints[] = Literal::new('Assert\\Choice', ['choices' => $quoted]);
-        }
-
-        return $constraints;
+        return new Attribute(Uuid::class, []);
     }
 }
