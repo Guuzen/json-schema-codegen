@@ -152,40 +152,40 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
             $types = [];
 
             foreach ($withoutImports as $resolvedType) {
-                $types[] = "'" . $resolvedType->type . "'";
+                $types[] = new Literal("'" . $resolvedType->type . "'");
             }
 
             foreach ($withImports as $resolvedType) {
-                $types[] = $resolvedType->type . '::class';
+                $types[] = new Literal($resolvedType->type . '::class');
             }
 
             if (count($types) === 1) {
-                $constraints[] = new Literal('new Assert\\Type(' . $types[0] . ')');
+                $constraints[] = Literal::new('Assert\\Type', [$types[0]]);
             } else {
-                $constraints[] = new Literal('new Assert\\Type([' . implode(', ', $types) . '])');
+                $constraints[] = Literal::new('Assert\\Type', [$types]);
             }
         }
 
         if (!$itemType->isNullable()) {
-            $constraints[] = new Literal('new Assert\\NotNull()');
+            $constraints[] = Literal::new('Assert\\NotNull', []);
         }
 
         if ($itemType instanceof StringType && $itemType->format === 'uuid') {
-            $constraints[] = new Literal('new Assert\\Uuid()');
+            $constraints[] = Literal::new('Assert\\Uuid', []);
         }
 
         if ($itemType instanceof IntType) {
             if ($itemType->min !== null) {
-                $constraints[] = new Literal('new Assert\\GreaterThanOrEqual(' . $itemType->min . ')');
+                $constraints[] = Literal::new('Assert\\GreaterThanOrEqual', [$itemType->min]);
             }
             if ($itemType->max !== null) {
-                $constraints[] = new Literal('new Assert\\LessThanOrEqual(' . $itemType->max . ')');
+                $constraints[] = Literal::new('Assert\\LessThanOrEqual', [$itemType->max]);
             }
         }
 
         if ($itemType instanceof EnumLiteralType) {
-            $quoted = array_map(fn($v) => "'" . $v . "'", $itemType->values);
-            $constraints[] = new Literal('new Assert\\Choice(choices: [' . implode(', ', $quoted) . '])');
+            $quoted = array_map(fn($v) => new Literal("'" . $v . "'"), $itemType->values);
+            $constraints[] = Literal::new('Assert\\Choice', ['choices' => $quoted]);
         }
 
         return $constraints;
