@@ -22,6 +22,7 @@ final class Order
          */
         #[Assert\Type('string')]
         #[Assert\NotNull]
+        #[Assert\Choice(choices: ['pending', 'processing', 'shipped', 'delivered'])]
         public $status,
         /**
          * @var int<1, 100>

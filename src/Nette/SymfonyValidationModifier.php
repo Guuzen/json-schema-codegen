@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Nette\PhpGenerator\Literal;
+use Symfony\Component\Validator\Constraints\Choice;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Type;
 
@@ -72,6 +74,10 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
 
         if (!$type->isNullable()) {
             $context->parameter->addAttribute(NotNull::class);
+        }
+
+        if ($type instanceof EnumLiteralType) {
+            $context->parameter->addAttribute(Choice::class, ['choices' => $type->values]);
         }
     }
 }
