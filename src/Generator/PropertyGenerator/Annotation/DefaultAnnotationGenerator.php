@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\BoolType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ClassRefType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\EnumLiteralType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\FloatType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\IntType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ListType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\MixedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\NullType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ObjectType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\StringType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UndefinedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UnionType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\BoolType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ClassRefType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\FloatType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\MixedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\NullType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ObjectType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UndefinedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\Undefined;
 
 final readonly class DefaultAnnotationGenerator implements AnnotationGenerator

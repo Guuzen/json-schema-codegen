@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 
 interface AnnotationGenerator
 {

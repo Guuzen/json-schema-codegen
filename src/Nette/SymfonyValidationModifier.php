@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Nette\PhpGenerator\Literal;
 use Symfony\Component\Validator\Constraints\Type;
@@ -16,17 +16,17 @@ use Symfony\Component\Validator\Constraints\Type;
 final readonly class SymfonyValidationModifier implements PropertyModifier
 {
     public function __construct(
+        private TypeRenderer $typeRenderer,
         private TypeGenerator $typeGenerator,
-        private PhpTypeGenerator $phpTypeGenerator,
     )
     {
     }
 
     public function modify(object $context): void
     {
-        $type = $this->phpTypeGenerator->generate($context->propertySchema);
+        $type = $this->typeGenerator->generate($context->propertySchema);
 
-        $resolvedTypes = $this->typeGenerator->generate($type);
+        $resolvedTypes = $this->typeRenderer->render($type);
         if ($resolvedTypes === []) {
             return;
         }

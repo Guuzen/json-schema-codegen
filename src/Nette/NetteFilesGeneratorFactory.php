@@ -6,7 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Filesystem\PutContents;
 use Guuzen\JsonSchemaCodegen\Filesystem\GetContents;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\YamlDecoder;
 use Guuzen\JsonSchemaCodegen\Filesystem\OutputPathTransformer;
@@ -17,9 +17,9 @@ use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FilesGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\DefaultCommentGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\DefaultTypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 
@@ -44,7 +44,7 @@ final class NetteFilesGeneratorFactory
         );
         $schemaRegistry = new SchemaRegistry();
 
-        $phpTypeGenerator = new PhpTypeGenerator($fqcnResolver, $schemaRegistry);
+        $typeGenerator = new TypeGenerator($fqcnResolver, $schemaRegistry);
 
         return new FilesGenerator(
             pathCollector: PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
@@ -62,11 +62,11 @@ final class NetteFilesGeneratorFactory
                         new CommentModifier(new DefaultCommentGenerator()),
                         new AnnotationModifier(
                             generator: new DefaultAnnotationGenerator(),
-                            phpTypeGenerator: $phpTypeGenerator,
+                            typeGenerator: $typeGenerator,
                         ),
                         new SymfonyValidationModifier(
-                            typeGenerator: new DefaultTypeGenerator(),
-                            phpTypeGenerator: $phpTypeGenerator,
+                            typeRenderer: new DefaultTypeRenderer(),
+                            typeGenerator: $typeGenerator,
                         ),
                         new OptionalModifier(new DefaultDefaultGenerator($fqcnResolver)),
                     ],

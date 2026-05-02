@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\CommentGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\CommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 
 /**

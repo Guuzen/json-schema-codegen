@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpTypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 
 /**
@@ -15,14 +15,14 @@ final readonly class AnnotationModifier implements PropertyModifier
 {
     public function __construct(
         private AnnotationGenerator $generator,
-        private PhpTypeGenerator $phpTypeGenerator,
+        private TypeGenerator $typeGenerator,
     )
     {
     }
 
     public function modify(object $context): void
     {
-        $type = $this->phpTypeGenerator->generate($context->propertySchema);
+        $type = $this->typeGenerator->generate($context->propertySchema);
 
         $resolved = $this->generator->generate($type);
 

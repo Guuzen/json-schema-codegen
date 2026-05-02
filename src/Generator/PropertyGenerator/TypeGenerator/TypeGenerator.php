@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator;
+namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\BoolType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ClassRefType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\EnumLiteralType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\FloatType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\IntType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ListType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\MixedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\NullType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\ObjectType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\StringType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UndefinedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\UnionType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\BoolType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ClassRefType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\FloatType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\MixedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\NullType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ObjectType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UndefinedType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
-final readonly class PhpTypeGenerator
+final readonly class TypeGenerator
 {
     public function __construct(
         private FqcnResolver   $fqcnResolver,

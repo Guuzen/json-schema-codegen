@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\DefaultCommentGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use PHPUnit\Framework\TestCase;
