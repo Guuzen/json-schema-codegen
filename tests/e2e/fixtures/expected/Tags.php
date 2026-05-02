@@ -19,7 +19,11 @@ final class Tags
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
-        #[Assert\All([new Assert\Type('string'), new Assert\NotNull(), new Assert\Choice(choices: ['featured', 'sale', 'new', 'trending'])])]
+        #[Assert\All([
+            new Assert\Type('string'),
+            new Assert\NotNull(),
+            new Assert\Choice(choices: ['featured', 'sale', 'new', 'trending']),
+        ])]
         public $tags,
     ) {
     }

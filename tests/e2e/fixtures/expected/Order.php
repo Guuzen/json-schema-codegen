@@ -45,7 +45,10 @@ final class Order
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
-        #[Assert\All([new Assert\Type(OrderItem::class), new Assert\NotNull()])]
+        #[Assert\All([
+            new Assert\Type(OrderItem::class),
+            new Assert\NotNull(),
+        ])]
         #[Assert\Valid]
         public $items,
         /**

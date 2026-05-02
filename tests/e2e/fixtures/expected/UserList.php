@@ -19,7 +19,11 @@ final class UserList
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
-        #[Assert\All([new Assert\Type('string'), new Assert\NotNull(), new Assert\Uuid()])]
+        #[Assert\All([
+            new Assert\Type('string'),
+            new Assert\NotNull(),
+            new Assert\Uuid(),
+        ])]
         public $userIds,
     ) {
     }

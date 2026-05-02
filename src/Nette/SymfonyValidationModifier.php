@@ -105,7 +105,8 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         if ($type instanceof ListType) {
             $itemConstraints = $this->collectItemConstraints($type->itemType);
             if ($itemConstraints !== []) {
-                $context->parameter->addAttribute(All::class, [$itemConstraints]);
+                $constraintCode = $this->formatConstraintsArray($itemConstraints);
+                $context->parameter->addAttribute(All::class, [new Literal($constraintCode)]);
             }
             if ($type->itemType->containsClassRef()) {
                 $context->parameter->addAttribute(Valid::class);
@@ -113,6 +114,19 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         } elseif ($type->containsClassRef()) {
             $context->parameter->addAttribute(Valid::class);
         }
+    }
+
+    /**
+     * @param array<Literal> $constraints
+     */
+    private function formatConstraintsArray(array $constraints): string
+    {
+        $lines = ['['];
+        foreach ($constraints as $constraint) {
+            $lines[] = '    ' . $constraint . ',';
+        }
+        $lines[] = ']';
+        return implode("\n", $lines);
     }
 
     /**
