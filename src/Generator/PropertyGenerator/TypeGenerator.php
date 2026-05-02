@@ -8,5 +8,8 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\PhpType\PhpType;
 
 interface TypeGenerator
 {
-    public function generate(PhpType $type): ResolvedTypes;
+    /**
+     * @return list<ResolvedType>
+     */
+    public function generate(PhpType $type): array;
 }

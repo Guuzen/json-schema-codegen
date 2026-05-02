@@ -21,26 +21,29 @@ use Guuzen\JsonSchemaCodegen\Undefined;
 
 final readonly class DefaultTypeGenerator implements TypeGenerator
 {
-    public function generate(PhpType $type): ResolvedTypes
+    public function generate(PhpType $type): array
     {
         return match (true) {
-            $type instanceof StringType      => new ResolvedTypes(['string'], []),
-            $type instanceof IntType         => new ResolvedTypes(['integer'], []),
-            $type instanceof FloatType       => new ResolvedTypes(['float'], []),
-            $type instanceof BoolType        => new ResolvedTypes(['bool'], []),
-            $type instanceof NullType        => new ResolvedTypes([], []),
-            $type instanceof ObjectType      => new ResolvedTypes(['object'], []),
-            $type instanceof MixedType       => new ResolvedTypes([], []),
-            $type instanceof ListType        => new ResolvedTypes(['list'], []),
-            $type instanceof ClassRefType    => new ResolvedTypes([$type->alias], [['alias' => $type->alias, 'fqcn' => $type->fqcn]]),
+            $type instanceof StringType      => [new ResolvedType('string')],
+            $type instanceof IntType         => [new ResolvedType('integer')],
+            $type instanceof FloatType       => [new ResolvedType('float')],
+            $type instanceof BoolType        => [new ResolvedType('bool')],
+            $type instanceof NullType        => [],
+            $type instanceof ObjectType      => [new ResolvedType('object')],
+            $type instanceof MixedType       => [],
+            $type instanceof ListType        => [new ResolvedType('list')],
+            $type instanceof ClassRefType    => [new ResolvedType($type->alias, ['alias' => $type->alias, 'fqcn' => $type->fqcn])],
             $type instanceof EnumLiteralType => $this->renderEnum($type),
             $type instanceof UnionType       => $this->renderUnion($type),
-            $type instanceof UndefinedType   => new ResolvedTypes(['Undefined'], [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
-            default                          => new ResolvedTypes([], []),
+            $type instanceof UndefinedType   => [new ResolvedType('Undefined', ['alias' => 'Undefined', 'fqcn' => Undefined::class])],
+            default                          => [],
         };
     }
 
-    private function renderEnum(EnumLiteralType $type): ResolvedTypes
+    /**
+     * @return list<ResolvedType>
+     */
+    private function renderEnum(EnumLiteralType $type): array
     {
         $types = [];
 
@@ -51,25 +54,21 @@ final readonly class DefaultTypeGenerator implements TypeGenerator
             $types[] = 'integer';
         }
 
-        return new ResolvedTypes($types, []);
+        return array_map(fn(string $t) => new ResolvedType($t), $types);
     }
 
-    private function renderUnion(UnionType $type): ResolvedTypes
+    /**
+     * @return list<ResolvedType>
+     */
+    private function renderUnion(UnionType $type): array
     {
-        $typesByKey   = [];
-        $importsByKey = [];
+        $results = [];
 
         foreach ($type->types as $branch) {
             $rendered = $this->generate($branch);
-
-            foreach ($rendered->types as $t) {
-                $typesByKey[$t] = $t;
-            }
-            foreach ($rendered->imports as $import) {
-                $importsByKey[$import['alias'] . ':' . $import['fqcn']] = $import;
-            }
+            array_push($results, ...$rendered);
         }
 
-        return new ResolvedTypes(array_values($typesByKey), array_values($importsByKey));
+        return $results;
     }
 }

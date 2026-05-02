@@ -18,7 +18,8 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
     public function __construct(
         private TypeGenerator $typeGenerator,
         private PhpTypeGenerator $phpTypeGenerator,
-    ) {
+    )
+    {
     }
 
     public function modify(object $context): void
@@ -26,22 +27,41 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         $type = $this->phpTypeGenerator->generate($context->propertySchema);
 
         $resolvedTypes = $this->typeGenerator->generate($type);
-        if ($resolvedTypes->types === []) {
+        if ($resolvedTypes === []) {
             return;
         }
 
         $context->namespace->addUse('Symfony\Component\Validator\Constraints', 'Assert');
-        foreach ($resolvedTypes->imports as $import) {
-            $context->namespace->addUse($import['fqcn'], $import['alias']);
+
+        $withImports = [];
+        $withoutImports = [];
+
+        foreach ($resolvedTypes as $resolvedType) {
+            if ($resolvedType->import === null) {
+                $withoutImports[] = $resolvedType;
+            } else {
+                $withImports[] = $resolvedType;
+            }
         }
 
-        $importAliases = array_column($resolvedTypes->imports, 'alias');
-        $types = array_map(
-            static fn(string $type): string|Literal => in_array($type, $importAliases, true)
-                ? new Literal($type . '::class')
-                : $type,
-            $resolvedTypes->types,
-        );
+        foreach ($withImports as $resolvedType) {
+            $context->namespace->addUse(
+                /** @phpstan-ignore offsetAccess.notFound */
+                $resolvedType->import['fqcn'],
+                /** @phpstan-ignore offsetAccess.notFound */
+                $resolvedType->import['alias']
+            );
+        }
+
+        $types = [];
+
+        foreach ($withoutImports as $resolvedType) {
+            $types[] = $resolvedType->type;
+        }
+
+        foreach ($withImports as $resolvedType) {
+            $types[] = new Literal($resolvedType->type . '::class');
+        }
 
         if (count($types) === 1) {
             $context->parameter->addAttribute(Type::class, [$types[0]]);
