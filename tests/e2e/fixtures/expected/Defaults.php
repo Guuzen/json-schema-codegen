@@ -52,12 +52,14 @@ final class Defaults
          */
         #[Assert\Type(Note::class)]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $note = null,
         /**
          * @var Note
          */
         #[Assert\Type(Note::class)]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $pinnedNote = new Note(content: 'pinned'),
     ) {
     }

@@ -20,4 +20,9 @@ final readonly class UnionType implements PhpType
     {
         return array_any($this->types, fn($type) => $type instanceof NullType);
     }
+
+    public function containsClassRef(): bool
+    {
+        return array_any($this->types, fn($type) => $type->containsClassRef());
+    }
 }

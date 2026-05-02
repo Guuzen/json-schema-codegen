@@ -16,6 +16,7 @@ final class Order
          */
         #[Assert\Type(Customer::class)]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $customer,
         /**
          * @var 'pending'|'processing'|'shipped'|'delivered'
@@ -35,18 +36,21 @@ final class Order
          */
         #[Assert\Type(Address::class)]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $address,
         /**
          * @var list<OrderItem>
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $items,
         /**
          * @var CreditCardPayment|BankTransferPayment
          */
         #[Assert\Type([CreditCardPayment::class, BankTransferPayment::class])]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $payment,
         /**
          * @var non-empty-string|Undefined
@@ -58,6 +62,7 @@ final class Order
          * @var Note|null|Undefined
          */
         #[Assert\Type([Note::class, Undefined::class])]
+        #[Assert\Valid]
         public $note = Undefined::Value,
     ) {
     }

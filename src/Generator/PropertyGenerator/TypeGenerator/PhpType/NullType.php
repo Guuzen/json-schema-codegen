@@ -12,4 +12,9 @@ final readonly class NullType implements PhpType
     {
         return true;
     }
+
+    public function containsClassRef(): bool
+    {
+        return false;
+    }
 }

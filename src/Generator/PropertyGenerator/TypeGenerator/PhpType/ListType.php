@@ -18,4 +18,9 @@ final readonly class ListType implements PhpType
     {
         return false;
     }
+
+    public function containsClassRef(): bool
+    {
+        return $this->itemType->containsClassRef();
+    }
 }

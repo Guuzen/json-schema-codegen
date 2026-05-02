@@ -12,4 +12,9 @@ final readonly class BoolType implements PhpType
     {
         return false;
     }
+
+    public function containsClassRef(): bool
+    {
+        return false;
+    }
 }

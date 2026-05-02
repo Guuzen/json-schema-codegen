@@ -16,12 +16,14 @@ final class Customer
          */
         #[Assert\Type(HomeAddress::class)]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $homeAddress,
         /**
          * @var BillingAddress
          */
         #[Assert\Type(BillingAddress::class)]
         #[Assert\NotNull]
+        #[Assert\Valid]
         public $billingAddress,
     ) {
     }

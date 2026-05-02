@@ -12,6 +12,7 @@ use Nette\PhpGenerator\Literal;
 use Symfony\Component\Validator\Constraints\Choice;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Type;
+use Symfony\Component\Validator\Constraints\Valid;
 
 /**
  * @implements PropertyModifier<PropertyContext>
@@ -78,6 +79,10 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
 
         if ($type instanceof EnumLiteralType) {
             $context->parameter->addAttribute(Choice::class, ['choices' => $type->values]);
+        }
+
+        if ($type->containsClassRef()) {
+            $context->parameter->addAttribute(Valid::class);
         }
     }
 }

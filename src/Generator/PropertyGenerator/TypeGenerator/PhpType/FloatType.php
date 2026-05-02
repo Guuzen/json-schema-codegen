@@ -12,4 +12,9 @@ final readonly class FloatType implements PhpType
     {
         return false;
     }
+
+    public function containsClassRef(): bool
+    {
+        return false;
+    }
 }

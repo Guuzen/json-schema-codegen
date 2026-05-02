@@ -18,4 +18,9 @@ final readonly class IntType implements PhpType
     {
         return false;
     }
+
+    public function containsClassRef(): bool
+    {
+        return false;
+    }
 }

@@ -17,4 +17,9 @@ final readonly class StringType implements PhpType
     {
         return false;
     }
+
+    public function containsClassRef(): bool
+    {
+        return false;
+    }
 }
