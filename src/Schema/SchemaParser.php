@@ -91,6 +91,9 @@ final readonly class SchemaParser
         /** @var string|null $description */
         $description = $node['description'] ?? null;
 
+        /** @var string|null $format */
+        $format = isset($node['format']) && is_string($node['format']) ? $node['format'] : null;
+
         /** @var int|null $minimum */
         $minimum = isset($node['minimum']) && is_int($node['minimum']) ? $node['minimum'] : null;
 
@@ -128,6 +131,7 @@ final readonly class SchemaParser
             minItems: $minItems,
             maxItems: $maxItems,
             default: $default,
+            format: $format,
         );
     }
 }

@@ -75,7 +75,10 @@ final readonly class TypeGenerator
         }
 
         return match ($schema->type) {
-            SchemaType::String  => new StringType(nonEmpty: $schema->minLength !== null && $schema->minLength >= 1),
+            SchemaType::String  => new StringType(
+                nonEmpty: $schema->minLength !== null && $schema->minLength >= 1,
+                format: $schema->format,
+            ),
             SchemaType::Integer => new IntType(min: $schema->minimum, max: $schema->maximum),
             SchemaType::Number  => new FloatType(),
             SchemaType::Boolean => new BoolType(),

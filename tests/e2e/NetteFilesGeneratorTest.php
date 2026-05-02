@@ -50,6 +50,8 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'BankTransferPayment.php' => self::SCHEMAS . 'BankTransferPayment.php',
         // Defaults: scalar defaults, null $ref default, object literal $ref default (new ClassName(...))
         self::EXPECTED . 'Defaults.php' => self::SCHEMAS . 'Defaults.php',
+        // User: UUID format validation
+        self::EXPECTED . 'User.php' => self::SCHEMAS . 'User.php',
         // Subdirectory schemas: namespace derived from path relative to baseUri
         self::EXPECTED . 'address/Address.php' => self::SCHEMAS . 'address/Address.php',
         self::EXPECTED . 'billing/Address.php' => self::SCHEMAS . 'billing/Address.php',

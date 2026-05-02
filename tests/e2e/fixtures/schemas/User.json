@@ -1,0 +1,9 @@
+{
+    "description": "A user with a UUID identifier",
+    "type": "object",
+    "required": ["id", "name"],
+    "properties": {
+        "id":    {"type": "string", "format": "uuid", "description": "The user's unique identifier"},
+        "name":  {"type": "string"}
+    }
+}

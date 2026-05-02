@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
@@ -15,6 +16,7 @@ use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Type;
+use Symfony\Component\Validator\Constraints\Uuid;
 use Symfony\Component\Validator\Constraints\Valid;
 
 /**
@@ -91,6 +93,10 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
             if ($type->max !== null) {
                 $context->parameter->addAttribute(LessThanOrEqual::class, [$type->max]);
             }
+        }
+
+        if ($type instanceof StringType && $type->format === 'uuid') {
+            $context->parameter->addAttribute(Uuid::class);
         }
 
         if ($type->containsClassRef()) {
