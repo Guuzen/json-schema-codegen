@@ -70,7 +70,7 @@ final readonly class PhpTypeGenerator
             );
         }
 
-        if ($schema->enum !== null && $schema->type === null) {
+        if ($schema->enum !== null) {
             return new EnumLiteralType($schema->enum);
         }
 
