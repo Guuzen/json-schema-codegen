@@ -13,6 +13,7 @@ final class Note
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $content,
     ) {
     }

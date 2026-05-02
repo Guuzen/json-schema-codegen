@@ -10,7 +10,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
-use Nette\PhpGenerator\PsrPrinter;
+use Nette\PhpGenerator\Printer;
 
 final readonly class ClassGenerator implements FileGenerator
 {
@@ -18,6 +18,7 @@ final readonly class ClassGenerator implements FileGenerator
      * @param iterable<PropertyModifier<PropertyContext>> $modifiers
      */
     public function __construct(
+        private Printer $printer,
         private CreatePhpFile $createPhpFile,
         private ConstructorParameterOrder $constructorParameterOrder,
         private iterable $modifiers,
@@ -41,6 +42,6 @@ final readonly class ClassGenerator implements FileGenerator
             }
         }
 
-        return new PsrPrinter()->printFile($file);
+        return $this->printer->printFile($file);
     }
 }

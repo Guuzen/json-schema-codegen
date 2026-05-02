@@ -15,4 +15,9 @@ final readonly class EnumLiteralType implements PhpType
         public array $values,
     ) {
     }
+
+    public function isNullable(): bool
+    {
+        return false;
+    }
 }

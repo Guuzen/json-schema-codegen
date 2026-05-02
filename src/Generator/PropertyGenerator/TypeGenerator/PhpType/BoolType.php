@@ -8,4 +8,8 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 
 final readonly class BoolType implements PhpType
 {
+    public function isNullable(): bool
+    {
+        return false;
+    }
 }

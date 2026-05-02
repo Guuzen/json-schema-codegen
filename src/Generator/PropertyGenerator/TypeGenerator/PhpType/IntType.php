@@ -13,4 +13,9 @@ final readonly class IntType implements PhpType
         public ?int $max = null,
     ) {
     }
+
+    public function isNullable(): bool
+    {
+        return false;
+    }
 }

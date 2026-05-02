@@ -13,6 +13,7 @@ final class BankTransferPayment
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $iban,
     ) {
     }

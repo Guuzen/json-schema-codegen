@@ -18,11 +18,13 @@ final class Product
          * @var non-empty-string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $name,
         /**
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $code,
         /**
          * @var string|null
@@ -33,11 +35,13 @@ final class Product
          * @var int
          */
         #[Assert\Type('integer')]
+        #[Assert\NotNull]
         public $stock,
         /**
          * @var int<0, 1000>
          */
         #[Assert\Type('integer')]
+        #[Assert\NotNull]
         public $quantity,
         /**
          * @var int|null
@@ -48,6 +52,7 @@ final class Product
          * @var float
          */
         #[Assert\Type('float')]
+        #[Assert\NotNull]
         public $price,
         /**
          * @var float|null
@@ -58,6 +63,7 @@ final class Product
          * @var bool
          */
         #[Assert\Type('bool')]
+        #[Assert\NotNull]
         public $active,
         /**
          * @var bool|null
@@ -68,21 +74,25 @@ final class Product
          * @var list<string>
          */
         #[Assert\Type('list')]
+        #[Assert\NotNull]
         public $tags,
         /**
          * @var non-empty-list<string>
          */
         #[Assert\Type('list')]
+        #[Assert\NotNull]
         public $requiredTags,
         /**
          * @var list<mixed>
          */
         #[Assert\Type('list')]
+        #[Assert\NotNull]
         public $data,
         /**
          * @var int|string
          */
         #[Assert\Type(['integer', 'string'])]
+        #[Assert\NotNull]
         public $externalId,
     ) {
     }

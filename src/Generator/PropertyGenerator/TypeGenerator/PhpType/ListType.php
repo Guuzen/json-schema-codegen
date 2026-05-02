@@ -13,4 +13,9 @@ final readonly class ListType implements PhpType
         public bool    $nonEmpty = false,
     ) {
     }
+
+    public function isNullable(): bool
+    {
+        return false;
+    }
 }

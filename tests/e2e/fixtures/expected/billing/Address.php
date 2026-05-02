@@ -13,16 +13,19 @@ final class Address
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $street,
         /**
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $city,
         /**
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $country,
     ) {
     }

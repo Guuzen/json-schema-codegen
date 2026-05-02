@@ -13,6 +13,7 @@ final class CreditCardPayment
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $cardNumber,
     ) {
     }

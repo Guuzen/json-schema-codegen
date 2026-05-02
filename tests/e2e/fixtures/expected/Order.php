@@ -15,36 +15,43 @@ final class Order
          * @var Customer
          */
         #[Assert\Type(Customer::class)]
+        #[Assert\NotNull]
         public $customer,
         /**
          * @var 'pending'|'processing'|'shipped'|'delivered'
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $status,
         /**
          * @var int<1, 100>
          */
         #[Assert\Type('integer')]
+        #[Assert\NotNull]
         public $quantity,
         /**
          * @var Address
          */
         #[Assert\Type(Address::class)]
+        #[Assert\NotNull]
         public $address,
         /**
          * @var list<OrderItem>
          */
         #[Assert\Type('list')]
+        #[Assert\NotNull]
         public $items,
         /**
          * @var CreditCardPayment|BankTransferPayment
          */
         #[Assert\Type([CreditCardPayment::class, BankTransferPayment::class])]
+        #[Assert\NotNull]
         public $payment,
         /**
          * @var non-empty-string|Undefined
          */
         #[Assert\Type(['string', Undefined::class])]
+        #[Assert\NotNull]
         public $couponCode = Undefined::Value,
         /**
          * @var Note|null|Undefined

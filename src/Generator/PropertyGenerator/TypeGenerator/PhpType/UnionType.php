@@ -15,4 +15,9 @@ final readonly class UnionType implements PhpType
         public array $types,
     ) {
     }
+
+    public function isNullable(): bool
+    {
+        return array_any($this->types, fn($type) => $type instanceof NullType);
+    }
 }

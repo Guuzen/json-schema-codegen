@@ -8,4 +8,8 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 
 final readonly class MixedType implements PhpType
 {
+    public function isNullable(): bool
+    {
+        return false;
+    }
 }

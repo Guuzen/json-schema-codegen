@@ -56,6 +56,7 @@ final class NetteFilesGeneratorFactory
             registry: $schemaRegistry,
             generators: [
                 new ClassGenerator(
+                    printer: new NettePrinter(),
                     createPhpFile: new CreatePhpFile($fqcnResolver),
                     constructorParameterOrder: new ConstructorParameterOrder(),
                     modifiers: [

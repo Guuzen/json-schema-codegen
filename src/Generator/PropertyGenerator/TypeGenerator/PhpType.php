@@ -6,4 +6,5 @@ namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator;
 
 interface PhpType
 {
+    public function isNullable(): bool;
 }

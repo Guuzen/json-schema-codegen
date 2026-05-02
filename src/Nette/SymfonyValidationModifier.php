@@ -8,6 +8,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGener
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Nette\PhpGenerator\Literal;
+use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Type;
 
 /**
@@ -65,10 +66,12 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
 
         if (count($types) === 1) {
             $context->parameter->addAttribute(Type::class, [$types[0]]);
-
-            return;
+        } else {
+            $context->parameter->addAttribute(Type::class, [$types]);
         }
 
-        $context->parameter->addAttribute(Type::class, [$types]);
+        if (!$type->isNullable()) {
+            $context->parameter->addAttribute(NotNull::class);
+        }
     }
 }

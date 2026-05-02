@@ -13,4 +13,9 @@ final readonly class ClassRefType implements PhpType
         public string $fqcn,
     ) {
     }
+
+    public function isNullable(): bool
+    {
+        return false;
+    }
 }

@@ -13,11 +13,13 @@ final class OrderItem
          * @var string
          */
         #[Assert\Type('string')]
+        #[Assert\NotNull]
         public $productId,
         /**
          * @var int
          */
         #[Assert\Type('integer')]
+        #[Assert\NotNull]
         public $quantity,
     ) {
     }
