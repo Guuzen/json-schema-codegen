@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Nette\PhpGenerator\Literal;
 use Symfony\Component\Validator\Constraints\Choice;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
+use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\Constraints\Valid;
@@ -79,6 +82,15 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
 
         if ($type instanceof EnumLiteralType) {
             $context->parameter->addAttribute(Choice::class, ['choices' => $type->values]);
+        }
+
+        if ($type instanceof IntType) {
+            if ($type->min !== null) {
+                $context->parameter->addAttribute(GreaterThanOrEqual::class, [$type->min]);
+            }
+            if ($type->max !== null) {
+                $context->parameter->addAttribute(LessThanOrEqual::class, [$type->max]);
+            }
         }
 
         if ($type->containsClassRef()) {

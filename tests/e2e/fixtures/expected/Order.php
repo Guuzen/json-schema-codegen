@@ -30,6 +30,8 @@ final class Order
          */
         #[Assert\Type('integer')]
         #[Assert\NotNull]
+        #[Assert\GreaterThanOrEqual(1)]
+        #[Assert\LessThanOrEqual(100)]
         public $quantity,
         /**
          * @var Address

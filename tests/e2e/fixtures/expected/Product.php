@@ -42,6 +42,8 @@ final class Product
          */
         #[Assert\Type('integer')]
         #[Assert\NotNull]
+        #[Assert\GreaterThanOrEqual(0)]
+        #[Assert\LessThanOrEqual(1000)]
         public $quantity,
         /**
          * @var int|null
