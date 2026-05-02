@@ -1,0 +1,15 @@
+{
+    "description": "A list of user identifiers",
+    "type": "object",
+    "required": ["userIds"],
+    "properties": {
+        "userIds": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "uuid"
+            },
+            "description": "List of user UUIDs"
+        }
+    }
+}

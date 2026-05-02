@@ -1,0 +1,15 @@
+{
+    "description": "A collection of tags",
+    "type": "object",
+    "required": ["tags"],
+    "properties": {
+        "tags": {
+            "type": "array",
+            "items": {
+                "enum": ["featured", "sale", "new", "trending"],
+                "description": "Available tag types"
+            },
+            "description": "List of tag enums"
+        }
+    }
+}

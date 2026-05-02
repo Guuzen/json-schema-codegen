@@ -77,18 +77,21 @@ final class Product
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
+        #[Assert\All([new Assert\Type('string'), new Assert\NotNull()])]
         public $tags,
         /**
          * @var non-empty-list<string>
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
+        #[Assert\All([new Assert\Type('string'), new Assert\NotNull()])]
         public $requiredTags,
         /**
          * @var list<mixed>
          */
         #[Assert\Type('list')]
         #[Assert\NotNull]
+        #[Assert\All([new Assert\NotNull()])]
         public $data,
         /**
          * @var int|string

@@ -52,6 +52,10 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'Defaults.php' => self::SCHEMAS . 'Defaults.php',
         // User: UUID format validation
         self::EXPECTED . 'User.php' => self::SCHEMAS . 'User.php',
+        // UserList: Assert\All validation for array items with UUID format
+        self::EXPECTED . 'UserList.php' => self::SCHEMAS . 'UserList.php',
+        // Tags: Assert\All validation for array items with enum choices
+        self::EXPECTED . 'Tags.php' => self::SCHEMAS . 'Tags.php',
         // Subdirectory schemas: namespace derived from path relative to baseUri
         self::EXPECTED . 'address/Address.php' => self::SCHEMAS . 'address/Address.php',
         self::EXPECTED . 'billing/Address.php' => self::SCHEMAS . 'billing/Address.php',

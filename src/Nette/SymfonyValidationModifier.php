@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Nette\PhpGenerator\Literal;
+use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\Choice;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\LessThanOrEqual;
@@ -99,8 +102,78 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
             $context->parameter->addAttribute(Uuid::class);
         }
 
-        if ($type->containsClassRef()) {
+        if ($type instanceof ListType) {
+            $itemConstraints = $this->collectItemConstraints($type->itemType);
+            if ($itemConstraints !== []) {
+                $context->parameter->addAttribute(All::class, [$itemConstraints]);
+            }
+            if ($type->itemType->containsClassRef()) {
+                $context->parameter->addAttribute(Valid::class);
+            }
+        } elseif ($type->containsClassRef()) {
             $context->parameter->addAttribute(Valid::class);
         }
+    }
+
+    /**
+     * @return array<Literal>
+     */
+    private function collectItemConstraints(PhpType $itemType): array
+    {
+        $constraints = [];
+
+        $resolvedTypes = $this->typeRenderer->render($itemType);
+        if ($resolvedTypes !== []) {
+            $withImports = [];
+            $withoutImports = [];
+
+            foreach ($resolvedTypes as $resolvedType) {
+                if ($resolvedType->import === null) {
+                    $withoutImports[] = $resolvedType;
+                } else {
+                    $withImports[] = $resolvedType;
+                }
+            }
+
+            $types = [];
+
+            foreach ($withoutImports as $resolvedType) {
+                $types[] = "'" . $resolvedType->type . "'";
+            }
+
+            foreach ($withImports as $resolvedType) {
+                $types[] = $resolvedType->type . '::class';
+            }
+
+            if (count($types) === 1) {
+                $constraints[] = new Literal('new Assert\\Type(' . $types[0] . ')');
+            } else {
+                $constraints[] = new Literal('new Assert\\Type([' . implode(', ', $types) . '])');
+            }
+        }
+
+        if (!$itemType->isNullable()) {
+            $constraints[] = new Literal('new Assert\\NotNull()');
+        }
+
+        if ($itemType instanceof StringType && $itemType->format === 'uuid') {
+            $constraints[] = new Literal('new Assert\\Uuid()');
+        }
+
+        if ($itemType instanceof IntType) {
+            if ($itemType->min !== null) {
+                $constraints[] = new Literal('new Assert\\GreaterThanOrEqual(' . $itemType->min . ')');
+            }
+            if ($itemType->max !== null) {
+                $constraints[] = new Literal('new Assert\\LessThanOrEqual(' . $itemType->max . ')');
+            }
+        }
+
+        if ($itemType instanceof EnumLiteralType) {
+            $quoted = array_map(fn($v) => "'" . $v . "'", $itemType->values);
+            $constraints[] = new Literal('new Assert\\Choice(choices: [' . implode(', ', $quoted) . '])');
+        }
+
+        return $constraints;
     }
 }
