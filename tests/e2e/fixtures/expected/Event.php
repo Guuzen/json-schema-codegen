@@ -37,6 +37,15 @@ final class Event
         #[Assert\NotNull]
         #[Assert\DateTime(format: DateTimeInterface::ATOM)]
         public $startsAt,
+        /**
+         * Slug like 123-456
+         *
+         * @var string
+         */
+        #[Assert\Type('string')]
+        #[Assert\NotNull]
+        #[Assert\Regex(pattern: '/^\d{3}\-\d{3}$/')]
+        public $slug,
     ) {
     }
 }

@@ -40,6 +40,7 @@ final readonly class Schema
         public ?int $maxItems = null,
         public ?DefaultValue $default = null,
         public ?string $format = null,
+        public ?string $pattern = null,
     )
     {
     }

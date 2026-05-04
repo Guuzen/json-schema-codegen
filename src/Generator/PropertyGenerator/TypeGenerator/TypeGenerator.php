@@ -77,6 +77,7 @@ final readonly class TypeGenerator
             SchemaType::String  => new StringType(
                 nonEmpty: $schema->minLength !== null && $schema->minLength >= 1,
                 format: $schema->format,
+                pattern: $schema->pattern,
             ),
             SchemaType::Integer => new IntType(min: $schema->minimum, max: $schema->maximum),
             SchemaType::Number  => new FloatType(),

@@ -11,6 +11,7 @@ final readonly class StringType implements PhpType
     public function __construct(
         public bool $nonEmpty = false,
         public ?string $format = null,
+        public ?string $pattern = null,
     ) {
     }
 
