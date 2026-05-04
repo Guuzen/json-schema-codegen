@@ -52,6 +52,8 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'Defaults.php' => self::SCHEMAS . 'Defaults.php',
         // User: UUID format validation
         self::EXPECTED . 'User.php' => self::SCHEMAS . 'User.php',
+        // Event: date format validation
+        self::EXPECTED . 'Event.php' => self::SCHEMAS . 'Event.php',
         // UserList: Assert\All validation for array items with UUID format
         self::EXPECTED . 'UserList.php' => self::SCHEMAS . 'UserList.php',
         // Tags: Assert\All validation for array items with enum choices
