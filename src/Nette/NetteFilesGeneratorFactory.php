@@ -22,6 +22,14 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultG
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\AllConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ChoiceConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\GreaterThanOrEqualConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\LessThanOrEqualConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\NotNullConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\TypeConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\UuidConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ValidConstraintGenerator;
 
 final class NetteFilesGeneratorFactory
 {
@@ -66,8 +74,24 @@ final class NetteFilesGeneratorFactory
                             typeGenerator: $typeGenerator,
                         ),
                         new SymfonyValidationModifier(
-                            typeRenderer: new DefaultTypeRenderer(),
                             typeGenerator: $typeGenerator,
+                            factories: [
+                                new TypeConstraintGenerator(new DefaultTypeRenderer()),
+                                new NotNullConstraintGenerator(),
+                                new UuidConstraintGenerator(),
+                                new GreaterThanOrEqualConstraintGenerator(),
+                                new LessThanOrEqualConstraintGenerator(),
+                                new ChoiceConstraintGenerator(),
+                                new AllConstraintGenerator([
+                                    new TypeConstraintGenerator(new DefaultTypeRenderer()),
+                                    new NotNullConstraintGenerator(),
+                                    new UuidConstraintGenerator(),
+                                    new GreaterThanOrEqualConstraintGenerator(),
+                                    new LessThanOrEqualConstraintGenerator(),
+                                    new ChoiceConstraintGenerator(),
+                                ]),
+                                new ValidConstraintGenerator(),
+                            ],
                         ),
                         new OptionalModifier(new DefaultDefaultGenerator($fqcnResolver)),
                     ],
