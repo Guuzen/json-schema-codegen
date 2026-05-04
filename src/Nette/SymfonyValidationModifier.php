@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassConstantRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintList;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
@@ -62,6 +63,11 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         if ($value instanceof ClassRef) {
             $namespace->addUse($value->fqcn, $value->alias);
             return new Literal($value->alias . '::class');
+        }
+
+        if ($value instanceof ClassConstantRef) {
+            $namespace->addUse($value->fqcn, $value->alias);
+            return new Literal($value->alias . '::' . $value->constant);
         }
 
         if ($value instanceof ConstraintList) {

@@ -7,7 +7,7 @@ namespace Guuzen\JsonSchemaCodegen\SymfonyValidation;
 final readonly class Constraint
 {
     /**
-     * @param array<int|string, mixed|ClassRef|array|ConstraintList> $args
+     * @param array<int|string, mixed|ClassRef|ClassConstantRef|array|ConstraintList> $args
      */
     public function __construct(
         public string $name,

@@ -1,9 +1,10 @@
 {
     "description": "An event with a date",
     "type": "object",
-    "required": ["name", "date"],
+    "required": ["name", "date", "startsAt"],
     "properties": {
         "name": {"type": "string"},
-        "date": {"type": "string", "format": "date", "description": "Date in YYYY-MM-DD format"}
+        "date": {"type": "string", "format": "date", "description": "Date in YYYY-MM-DD format"},
+        "startsAt": {"type": "string", "format": "date-time", "description": "Start timestamp in ATOM format"}
     }
 }

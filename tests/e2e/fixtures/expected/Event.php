@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use DateTimeInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -27,6 +28,15 @@ final class Event
         #[Assert\NotNull]
         #[Assert\Date]
         public $date,
+        /**
+         * Start timestamp in ATOM format
+         *
+         * @var string
+         */
+        #[Assert\Type('string')]
+        #[Assert\NotNull]
+        #[Assert\DateTime(format: DateTimeInterface::ATOM)]
+        public $startsAt,
     ) {
     }
 }

@@ -25,6 +25,7 @@ use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\AllConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ChoiceConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\DateConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\DateTimeConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\GreaterThanOrEqualConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\LessThanOrEqualConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\NotNullConstraintGenerator;
@@ -81,6 +82,7 @@ final class NetteFilesGeneratorFactory
                                 new NotNullConstraintGenerator(),
                                 new UuidConstraintGenerator(),
                                 new DateConstraintGenerator(),
+                                new DateTimeConstraintGenerator(),
                                 new GreaterThanOrEqualConstraintGenerator(),
                                 new LessThanOrEqualConstraintGenerator(),
                                 new ChoiceConstraintGenerator(),
@@ -89,6 +91,7 @@ final class NetteFilesGeneratorFactory
                                     new NotNullConstraintGenerator(),
                                     new UuidConstraintGenerator(),
                                     new DateConstraintGenerator(),
+                                    new DateTimeConstraintGenerator(),
                                     new GreaterThanOrEqualConstraintGenerator(),
                                     new LessThanOrEqualConstraintGenerator(),
                                     new ChoiceConstraintGenerator(),
