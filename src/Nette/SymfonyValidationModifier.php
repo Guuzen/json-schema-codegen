@@ -19,11 +19,11 @@ use Nette\PhpGenerator\PhpNamespace;
 final readonly class SymfonyValidationModifier implements PropertyModifier
 {
     /**
-     * @param list<ConstraintGenerator> $factories
+     * @param list<ConstraintGenerator> $generators
      */
     public function __construct(
         private TypeGenerator $typeGenerator,
-        private array $factories,
+        private array $generators,
     )
     {
     }
@@ -34,8 +34,8 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
 
         $context->namespace->addUse('Symfony\Component\Validator\Constraints', 'Assert');
 
-        foreach ($this->factories as $factory) {
-            $constraint = $factory->generate($type);
+        foreach ($this->generators as $generator) {
+            $constraint = $generator->generate($type);
             if ($constraint !== null) {
                 $context->parameter->addAttribute(
                     $constraint->name,

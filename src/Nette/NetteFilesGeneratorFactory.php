@@ -78,7 +78,7 @@ final class NetteFilesGeneratorFactory
                         ),
                         new SymfonyValidationModifier(
                             typeGenerator: $typeGenerator,
-                            factories: [
+                            generators: [
                                 new TypeConstraintGenerator(new DefaultTypeRenderer()),
                                 new NotNullConstraintGenerator(),
                                 new UuidConstraintGenerator(),

@@ -33,6 +33,7 @@ final class Tags
          * @var 'featured'|'sale'|'new'|'trending'|null
          */
         #[Assert\Type('string')]
+        #[Assert\Choice(choices: ['featured', 'sale', 'new', 'trending'])]
         public $tag,
     ) {
     }
