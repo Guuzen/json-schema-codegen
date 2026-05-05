@@ -25,6 +25,13 @@ final class Tags
             new Assert\Choice(choices: ['featured', 'sale', 'new', 'trending']),
         ])]
         public $tags,
+        /**
+         * List of tag enums or null
+         *
+         * @var 'featured'|'sale'|'new'|'trending'|null
+         */
+        #[Assert\Type('string')]
+        public $tag,
     ) {
     }
 }

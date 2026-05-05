@@ -1,7 +1,7 @@
 {
     "description": "A collection of tags",
     "type": "object",
-    "required": ["tags"],
+    "required": ["tags", "tag"],
     "properties": {
         "tags": {
             "type": "array",
@@ -10,6 +10,16 @@
                 "description": "Available tag types"
             },
             "description": "List of tag enums"
+        },
+        "tag": {
+            "oneOf": [
+                { "type": "null" },
+                {
+                    "enum": ["featured", "sale", "new", "trending"],
+                    "description": "Tag"
+                }
+            ],
+            "description": "List of tag enums or null"
         }
     }
 }
