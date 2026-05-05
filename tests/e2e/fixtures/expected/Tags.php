@@ -28,6 +28,8 @@ final class Tags
         /**
          * List of tag enums or null
          *
+         * Tag
+         *
          * @var 'featured'|'sale'|'new'|'trending'|null
          */
         #[Assert\Type('string')]

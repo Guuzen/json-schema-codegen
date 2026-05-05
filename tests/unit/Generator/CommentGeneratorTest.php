@@ -7,12 +7,58 @@ namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CommentGeneratorTest extends TestCase
 {
-    public function testCommentIsNullWhenSchemaHasNoDescription(): void
+    /**
+     * @return iterable<string, array{Schema, ?string}>
+     */
+    public static function provideComments(): iterable
     {
-        self::assertNull(new DefaultCommentGenerator()->generate(new Schema(type: SchemaType::String)));
+        yield 'no description'       => [
+            new Schema(type: SchemaType::String),
+            null,
+        ];
+        yield 'plain description'    => [
+            new Schema(type: SchemaType::String, description: 'parent'),
+            'parent',
+        ];
+        yield 'oneOf branch descriptions appended to parent description' => [
+            new Schema(
+                description: 'parent',
+                oneOf: [
+                    new Schema(type: SchemaType::String, description: 'first branch'),
+                    new Schema(type: SchemaType::Null),
+                    new Schema(type: SchemaType::Integer, description: 'third branch'),
+                ],
+            ),
+            "parent\n\nfirst branch\nthird branch",
+        ];
+        yield 'oneOf branch descriptions without parent description' => [
+            new Schema(
+                oneOf: [
+                    new Schema(type: SchemaType::String, description: 'first branch'),
+                    new Schema(type: SchemaType::Integer, description: 'second branch'),
+                ],
+            ),
+            "first branch\nsecond branch",
+        ];
+        yield 'oneOf without any descriptions' => [
+            new Schema(
+                oneOf: [
+                    new Schema(type: SchemaType::String),
+                    new Schema(type: SchemaType::Null),
+                ],
+            ),
+            null,
+        ];
+    }
+
+    #[DataProvider('provideComments')]
+    public function testCommentGeneration(Schema $schema, ?string $expected): void
+    {
+        self::assertSame($expected, new DefaultCommentGenerator()->generate($schema));
     }
 }
