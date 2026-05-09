@@ -51,7 +51,7 @@ $config = new Config(
     schemaSuffix: '.json',
 );
 
-NetteFilesGeneratorFactory::withJsonDecoder($config)->run();
+NetteFilesGeneratorFactory::create($config)->run();
 ```
 
 Run it with `php generate.php` whenever your schemas change.
@@ -180,8 +180,9 @@ composer require symfony/yaml
 
 ```php
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
+use Guuzen\JsonSchemaCodegen\Schema\YamlDecoder;
 
-NetteFilesGeneratorFactory::withYamlDecoder($config)->run();
+NetteFilesGeneratorFactory::create($config, decoder: new YamlDecoder())->run();
 ```
 
 ## Running Tests

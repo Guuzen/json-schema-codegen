@@ -4,108 +4,87 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Filesystem\PutContents;
+use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Filesystem\GetContents;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
-use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
-use Guuzen\JsonSchemaCodegen\Schema\YamlDecoder;
 use Guuzen\JsonSchemaCodegen\Filesystem\OutputPathTransformer;
 use Guuzen\JsonSchemaCodegen\Filesystem\PathsWithSuffix;
-use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
-use Guuzen\JsonSchemaCodegen\Config;
+use Guuzen\JsonSchemaCodegen\Filesystem\PutContents;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
+use Guuzen\JsonSchemaCodegen\Generator\FileDumper;
+use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\FileLoader;
 use Guuzen\JsonSchemaCodegen\Generator\FilesGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PathCollector;
+use Guuzen\JsonSchemaCodegen\Generator\PathTransformer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\AllConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ChoiceConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\DateConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\DateTimeConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\GreaterThanOrEqualConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\LessThanOrEqualConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\NotNullConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\RegexConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\TypeConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\UuidConstraintGenerator;
-use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ValidConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
+use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
 
 final class NetteFilesGeneratorFactory
 {
-    public static function withJsonDecoder(Config $config): FilesGenerator
+    /**
+     * @param list<FileGenerator> $generators
+     */
+    public static function create(
+        Config $config,
+        ?FileLoader $fileLoader = null,
+        ?SchemaDecoder $decoder = null,
+        ?FileDumper $fileDumper = null,
+        ?PathCollector $pathCollector = null,
+        ?PathTransformer $pathTransformer = null,
+        ?array $generators = null,
+    ): FilesGenerator
     {
-        return self::create($config, new JsonDecoder());
-    }
-
-    public static function withYamlDecoder(Config $config): FilesGenerator
-    {
-        return self::create($config, new YamlDecoder());
-    }
-
-    private static function create(Config $config, SchemaDecoder $decoder): FilesGenerator
-    {
-        $fqcnResolver = new FqcnResolver(
-            $config->schemaPath->toUri(),
-            $config->baseNamespace,
-            $config->schemaSuffix,
-        );
         $schemaRegistry = new SchemaRegistry();
 
-        $typeGenerator = new TypeGenerator($fqcnResolver, $schemaRegistry);
-
         return new FilesGenerator(
-            pathCollector: PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
-            fileLoader: new GetContents(),
-            pathTransformer: new OutputPathTransformer($config->schemaPath, $config->outputPath, $config->schemaSuffix),
-            fileDumper: new PutContents(),
+            pathCollector: $pathCollector ?? PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
+            fileLoader: $fileLoader ?? new GetContents(),
+            pathTransformer: $pathTransformer ?? new OutputPathTransformer(
+                $config->schemaPath,
+                $config->outputPath,
+                $config->schemaSuffix
+            ),
+            fileDumper: $fileDumper ?? new PutContents(),
             schemaParser: new SchemaParser(),
-            schemaFileDecoder: $decoder,
+            schemaFileDecoder: $decoder ?? new JsonDecoder(),
             registry: $schemaRegistry,
-            generators: [
+            generators: $generators ?? [
                 new ClassGenerator(
                     printer: new NettePrinter(),
-                    createPhpFile: new CreatePhpFile($fqcnResolver),
+                    createPhpFile: new CreatePhpFile(self::createFqcnResolver($config)),
                     constructorParameterOrder: new ConstructorParameterOrder(),
                     modifiers: [
                         new CommentModifier(new DefaultCommentGenerator()),
                         new AnnotationModifier(
                             generator: new DefaultAnnotationGenerator(),
-                            typeGenerator: $typeGenerator,
+                            typeGenerator: new TypeGenerator(self::createFqcnResolver($config), $schemaRegistry),
                         ),
                         new SymfonyValidationModifier(
-                            typeGenerator: $typeGenerator,
-                            generators: [
-                                new TypeConstraintGenerator(new DefaultTypeRenderer()),
-                                new NotNullConstraintGenerator(),
-                                new UuidConstraintGenerator(),
-                                new DateConstraintGenerator(),
-                                new DateTimeConstraintGenerator(),
-                                new RegexConstraintGenerator(),
-                                new GreaterThanOrEqualConstraintGenerator(),
-                                new LessThanOrEqualConstraintGenerator(),
-                                new ChoiceConstraintGenerator(),
-                                new AllConstraintGenerator([
-                                    new TypeConstraintGenerator(new DefaultTypeRenderer()),
-                                    new NotNullConstraintGenerator(),
-                                    new UuidConstraintGenerator(),
-                                    new DateConstraintGenerator(),
-                                    new DateTimeConstraintGenerator(),
-                                    new RegexConstraintGenerator(),
-                                    new GreaterThanOrEqualConstraintGenerator(),
-                                    new LessThanOrEqualConstraintGenerator(),
-                                    new ChoiceConstraintGenerator(),
-                                ]),
-                                new ValidConstraintGenerator(),
-                            ],
+                            typeGenerator: new TypeGenerator(self::createFqcnResolver($config), $schemaRegistry),
+                            generators: SymfonyValidationModifier::defaultGenerators(),
                         ),
-                        new OptionalModifier(new DefaultDefaultGenerator($fqcnResolver)),
+                        new OptionalModifier(
+                            new DefaultDefaultGenerator(self::createFqcnResolver($config))
+                        ),
                     ],
                 ),
             ],
+        );
+    }
+
+    private static function createFqcnResolver(Config $config): FqcnResolver
+    {
+        return new FqcnResolver(
+            $config->schemaPath->toUri(),
+            $config->baseNamespace,
+            $config->schemaSuffix,
         );
     }
 }

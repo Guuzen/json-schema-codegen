@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Tests\E2e;
 
 use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
+use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -72,7 +73,7 @@ final class NetteFilesGeneratorTest extends TestCase
     {
         /** @var Config $config */
         $config = require self::CONFIG_FILE;
-        NetteFilesGeneratorFactory::withJsonDecoder($config)->run();
+        NetteFilesGeneratorFactory::create(config: $config, decoder: new JsonDecoder())->run();
 
         foreach (self::FILES as $expectedPath => $actualPath) {
             self::assertFileExists($actualPath, sprintf('Expected output file "%s" was not generated', $actualPath));

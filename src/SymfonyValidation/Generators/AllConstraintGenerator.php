@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintList;
@@ -14,10 +15,10 @@ use Symfony\Component\Validator\Constraints\All;
 final readonly class AllConstraintGenerator implements ConstraintGenerator
 {
     /**
-     * @param list<ConstraintGenerator> $itemFactories
+     * @param list<ConstraintGenerator> $generators
      */
     public function __construct(
-        private array $itemFactories,
+        private array $generators,
     )
     {
     }
@@ -30,7 +31,7 @@ final readonly class AllConstraintGenerator implements ConstraintGenerator
 
         $itemConstraints = [];
 
-        foreach ($this->itemFactories as $factory) {
+        foreach ($this->generators as $factory) {
             $constraint = $factory->generate($type->itemType);
             if ($constraint !== null) {
                 $itemConstraints[] = $constraint;
@@ -42,5 +43,23 @@ final readonly class AllConstraintGenerator implements ConstraintGenerator
         }
 
         return new Constraint(All::class, [new ConstraintList($itemConstraints)]);
+    }
+
+    /**
+     * @return list<ConstraintGenerator>
+     */
+    public static function defaultGenerators(): array
+    {
+        return [
+            new TypeConstraintGenerator(new DefaultTypeRenderer()),
+            new NotNullConstraintGenerator(),
+            new UuidConstraintGenerator(),
+            new DateConstraintGenerator(),
+            new DateTimeConstraintGenerator(),
+            new RegexConstraintGenerator(),
+            new GreaterThanOrEqualConstraintGenerator(),
+            new LessThanOrEqualConstraintGenerator(),
+            new ChoiceConstraintGenerator(),
+        ];
     }
 }

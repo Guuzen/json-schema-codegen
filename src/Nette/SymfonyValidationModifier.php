@@ -5,11 +5,23 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassConstantRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintList;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\AllConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ChoiceConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\DateConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\DateTimeConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\GreaterThanOrEqualConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\LessThanOrEqualConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\NotNullConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\RegexConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\TypeConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\UuidConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ValidConstraintGenerator;
 use Nette\PhpGenerator\Literal;
 use Nette\PhpGenerator\PhpNamespace;
 
@@ -93,5 +105,25 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
         $lines[] = ']';
 
         return new Literal(implode("\n", $lines));
+    }
+
+    /**
+     * @return list<ConstraintGenerator>
+     */
+    public static function defaultGenerators(): array
+    {
+        return [
+            new TypeConstraintGenerator(new DefaultTypeRenderer()),
+            new NotNullConstraintGenerator(),
+            new UuidConstraintGenerator(),
+            new DateConstraintGenerator(),
+            new DateTimeConstraintGenerator(),
+            new RegexConstraintGenerator(),
+            new GreaterThanOrEqualConstraintGenerator(),
+            new LessThanOrEqualConstraintGenerator(),
+            new ChoiceConstraintGenerator(),
+            new AllConstraintGenerator(AllConstraintGenerator::defaultGenerators()),
+            new ValidConstraintGenerator(),
+        ];
     }
 }
