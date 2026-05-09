@@ -23,7 +23,7 @@ final readonly class DefaultDefaultGenerator implements DefaultGenerator
 
         if ($schema->ref !== null && is_array($schemaDefault->value)) {
             $fqcn = $this->fqcnResolver->fromUri($schema->ref->uri);
-            $alias = $schema->title ?? $fqcn->className();
+            $alias = $schema->xAlias ?? $fqcn->className();
 
             return new DefaultValue(new NewObjectDefaultValue($alias, $schemaDefault->value));
         }

@@ -47,7 +47,7 @@ final readonly class TypeGenerator
 
             if ($referenced->type === SchemaType::Object) {
                 $fqcn  = $this->fqcnResolver->fromUri($schema->ref->uri);
-                $alias = $schema->title ?? $fqcn->className();
+                $alias = $schema->xAlias ?? $fqcn->className();
                 return new ClassRefType($alias, $fqcn->fqcn);
             }
 

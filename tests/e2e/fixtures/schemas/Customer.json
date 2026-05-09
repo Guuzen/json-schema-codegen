@@ -2,7 +2,7 @@
     "type": "object",
     "required": ["homeAddress", "billingAddress"],
     "properties": {
-        "homeAddress":    {"$ref": "address/Address.json", "title": "HomeAddress"},
-        "billingAddress": {"$ref": "billing/Address.json", "title": "BillingAddress"}
+        "homeAddress":    {"$ref": "address/Address.json", "x-alias": "HomeAddress"},
+        "billingAddress": {"$ref": "billing/Address.json", "x-alias": "BillingAddress"}
     }
 }

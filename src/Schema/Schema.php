@@ -31,6 +31,7 @@ final readonly class Schema
         public ?array $oneOf = null,
         public ?array $enum = null,
         public ?string $title = null,
+        public ?string $xAlias = null,
         public ?string $description = null,
         public ?int $minimum = null,
         public ?int $maximum = null,

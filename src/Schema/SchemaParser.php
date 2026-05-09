@@ -88,6 +88,9 @@ final readonly class SchemaParser
         /** @var string|null $title */
         $title = isset($node['title']) && is_string($node['title']) ? $node['title'] : null;
 
+        /** @var string|null $xAlias */
+        $xAlias = isset($node['x-alias']) && is_string($node['x-alias']) ? $node['x-alias'] : null;
+
         /** @var string|null $description */
         $description = $node['description'] ?? null;
 
@@ -126,6 +129,7 @@ final readonly class SchemaParser
             oneOf: $oneOf,
             enum: $enum,
             title: $title,
+            xAlias: $xAlias,
             description: $description,
             minimum: $minimum,
             maximum: $maximum,

@@ -361,8 +361,8 @@ final class TypeGeneratorTest extends TestCase
             new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Address.json'))),
             new ClassRefType('Address', 'App\\Dto\\Address'),
         ];
-        yield 'ref to object with title override' => [
-            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')), title: 'BillingAddress'),
+        yield 'ref to object with x-alias override' => [
+            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')), xAlias: 'BillingAddress'),
             new ClassRefType('BillingAddress', 'App\\Dto\\Address'),
         ];
     }
