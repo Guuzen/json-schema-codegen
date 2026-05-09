@@ -15,9 +15,11 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\U
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\ChoiceConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators\GreaterThanOrEqualConstraintGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints\Choice;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 
 final class ChoiceConstraintGeneratorTest extends TestCase
 {
@@ -53,5 +55,13 @@ final class ChoiceConstraintGeneratorTest extends TestCase
     public function testGenerate(PhpType $type, ?Constraint $expected): void
     {
         self::assertEquals($expected, new ChoiceConstraintGenerator()->generate($type));
+    }
+
+    public function testGenerateGteZeroNullable(): void
+    {
+        $generator = new GreaterThanOrEqualConstraintGenerator();
+        $constraint = $generator->generate(new UnionType([new IntType(0), new NullType()]));
+
+        self::assertEquals(new Constraint(GreaterThanOrEqual::class, [0]), $constraint);
     }
 }

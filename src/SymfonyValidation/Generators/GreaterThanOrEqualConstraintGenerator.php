@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
@@ -14,10 +15,24 @@ final readonly class GreaterThanOrEqualConstraintGenerator implements Constraint
 {
     public function generate(PhpType $type): ?Constraint
     {
-        if (!$type instanceof IntType || $type->min === null) {
+        $intType = $this->findIntType($type);
+        if ($intType === null || $intType->min === null) {
             return null;
         }
 
-        return new Constraint(GreaterThanOrEqual::class, [$type->min]);
+        return new Constraint(GreaterThanOrEqual::class, [$intType->min]);
+    }
+
+    private function findIntType(PhpType $type): ?IntType
+    {
+        if ($type instanceof IntType) {
+            return $type;
+        }
+
+        if (!$type instanceof UnionType) {
+            return null;
+        }
+
+        return $type->findOnlySingleType(IntType::class);
     }
 }

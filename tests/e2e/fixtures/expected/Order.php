@@ -59,6 +59,12 @@ final class Order
         #[Assert\Valid]
         public $payment,
         /**
+         * @var int<0, max>|null
+         */
+        #[Assert\Type('integer')]
+        #[Assert\GreaterThanOrEqual(0)]
+        public $amount,
+        /**
          * @var non-empty-string|Undefined
          */
         #[Assert\Type(['string', Undefined::class])]

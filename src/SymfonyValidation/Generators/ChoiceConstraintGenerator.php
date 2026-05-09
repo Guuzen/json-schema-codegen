@@ -6,8 +6,6 @@ namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\NullType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UndefinedType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
@@ -35,18 +33,6 @@ final readonly class ChoiceConstraintGenerator implements ConstraintGenerator
             return null;
         }
 
-        $enum = null;
-        foreach ($type->types as $inner) {
-            if ($inner instanceof EnumLiteralType) {
-                $enum = $inner;
-                continue;
-            }
-            if ($inner instanceof NullType || $inner instanceof UndefinedType) {
-                continue;
-            }
-            return null;
-        }
-
-        return $enum;
+        return $type->findOnlySingleType(EnumLiteralType::class);
     }
 }

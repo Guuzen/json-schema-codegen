@@ -1,6 +1,6 @@
 {
     "type": "object",
-    "required": ["customer", "status", "quantity", "address", "items", "payment"],
+    "required": ["customer", "status", "quantity", "address", "items", "payment", "amount"],
     "properties": {
         "customer": {"$ref": "Customer.json"},
         "status":   {"$ref": "OrderStatus.json"},
@@ -9,6 +9,7 @@
         "address":  {"$ref": "address/Address.json"},
         "note":     {"oneOf": [{"$ref": "Note.json"}, {"type": "null"}]},
         "items":    {"type": "array", "items": {"$ref": "OrderItem.json"}},
-        "payment":  {"oneOf": [{"$ref": "CreditCardPayment.json"}, {"$ref": "BankTransferPayment.json"}]}
+        "payment":  {"oneOf": [{"$ref": "CreditCardPayment.json"}, {"$ref": "BankTransferPayment.json"}]},
+        "amount":   {"oneOf": [{"$ref": "Cent.json"}, {"type": "null"}]}
     }
 }
