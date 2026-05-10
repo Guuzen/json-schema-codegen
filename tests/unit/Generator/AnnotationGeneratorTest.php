@@ -4,161 +4,271 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\ResolvedAnnotation;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\BoolType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ClassRefType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\FloatType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\MixedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\NullType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ObjectType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UndefinedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Undefined;
+use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AnnotationGeneratorTest extends TestCase
 {
-    /**
-     * @return iterable<string, array{PhpType, ResolvedAnnotation}>
-     */
-    public static function provideAnnotations(): iterable
+    private static function make(SchemaRegistry $registry = new SchemaRegistry([])): DefaultAnnotationGenerator
     {
+        return new DefaultAnnotationGenerator(
+            new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
+            $registry,
+        );
+    }
+
+    /**
+     * @return iterable<string, array{Schema, ResolvedAnnotation, SchemaRegistry}>
+     */
+    public static function provideCases(): iterable
+    {
+        $emptyRegistry = new SchemaRegistry([]);
+
         // Primitives
-        yield 'string'           => [new StringType(), new ResolvedAnnotation('string', [])];
-        yield 'non-empty-string' => [new StringType(nonEmpty: true), new ResolvedAnnotation('non-empty-string', [])];
-        yield 'int'              => [new IntType(), new ResolvedAnnotation('int', [])];
-        yield 'int min'          => [new IntType(min: 5), new ResolvedAnnotation('int<5, max>', [])];
-        yield 'int max'          => [new IntType(max: 10), new ResolvedAnnotation('int<min, 10>', [])];
-        yield 'int bounded'      => [new IntType(min: 1, max: 100), new ResolvedAnnotation('int<1, 100>', [])];
-        yield 'int zero min'     => [new IntType(min: 0), new ResolvedAnnotation('int<0, max>', [])];
-        yield 'int negative'     => [
-            new IntType(min: -100, max: -1),
+        yield 'string' => [
+            new Schema(type: SchemaType::String),
+            new ResolvedAnnotation('string', []),
+            $emptyRegistry,
+        ];
+        yield 'non-empty-string' => [
+            new Schema(type: SchemaType::String, minLength: 1),
+            new ResolvedAnnotation('non-empty-string', []),
+            $emptyRegistry,
+        ];
+        yield 'string minLength=0' => [
+            new Schema(type: SchemaType::String, minLength: 0),
+            new ResolvedAnnotation('string', []),
+            $emptyRegistry,
+        ];
+        yield 'int' => [
+            new Schema(type: SchemaType::Integer),
+            new ResolvedAnnotation('int', []),
+            $emptyRegistry,
+        ];
+        yield 'int min' => [
+            new Schema(type: SchemaType::Integer, minimum: 5),
+            new ResolvedAnnotation('int<5, max>', []),
+            $emptyRegistry,
+        ];
+        yield 'int max' => [
+            new Schema(type: SchemaType::Integer, maximum: 10),
+            new ResolvedAnnotation('int<min, 10>', []),
+            $emptyRegistry,
+        ];
+        yield 'int bounded' => [
+            new Schema(type: SchemaType::Integer, minimum: 1, maximum: 100),
+            new ResolvedAnnotation('int<1, 100>', []),
+            $emptyRegistry,
+        ];
+        yield 'int zero min' => [
+            new Schema(type: SchemaType::Integer, minimum: 0),
+            new ResolvedAnnotation('int<0, max>', []),
+            $emptyRegistry,
+        ];
+        yield 'int negative' => [
+            new Schema(type: SchemaType::Integer, minimum: -100, maximum: -1),
             new ResolvedAnnotation('int<-100, -1>', []),
+            $emptyRegistry,
         ];
-        yield 'float'  => [new FloatType(), new ResolvedAnnotation('float', [])];
-        yield 'bool'   => [new BoolType(), new ResolvedAnnotation('bool', [])];
-        yield 'null'   => [new NullType(), new ResolvedAnnotation('null', [])];
-        yield 'object' => [new ObjectType(), new ResolvedAnnotation('object', [])];
-        yield 'mixed'  => [new MixedType(), new ResolvedAnnotation('mixed', [])];
-        yield 'undefined' => [
-            new UndefinedType(),
-            new ResolvedAnnotation('Undefined', [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
-        ];
+        yield 'float'  => [new Schema(type: SchemaType::Number), new ResolvedAnnotation('float', []), $emptyRegistry];
+        yield 'bool'   => [new Schema(type: SchemaType::Boolean), new ResolvedAnnotation('bool', []), $emptyRegistry];
+        yield 'null'   => [new Schema(type: SchemaType::Null), new ResolvedAnnotation('null', []), $emptyRegistry];
+        yield 'object' => [new Schema(type: SchemaType::Object), new ResolvedAnnotation('object', []), $emptyRegistry];
+        yield 'mixed'  => [new Schema(), new ResolvedAnnotation('mixed', []), $emptyRegistry];
 
         // Lists
         yield 'list of mixed' => [
-            new ListType(new MixedType()),
+            new Schema(type: SchemaType::Array),
             new ResolvedAnnotation('list<mixed>', []),
+            $emptyRegistry,
         ];
         yield 'non-empty-list of mixed' => [
-            new ListType(new MixedType(), nonEmpty: true),
+            new Schema(type: SchemaType::Array, minItems: 1),
             new ResolvedAnnotation('non-empty-list<mixed>', []),
+            $emptyRegistry,
         ];
         yield 'list of string' => [
-            new ListType(new StringType()),
+            new Schema(type: SchemaType::Array, items: new Schema(type: SchemaType::String)),
             new ResolvedAnnotation('list<string>', []),
+            $emptyRegistry,
         ];
         yield 'list of int' => [
-            new ListType(new IntType()),
+            new Schema(type: SchemaType::Array, items: new Schema(type: SchemaType::Integer)),
             new ResolvedAnnotation('list<int>', []),
+            $emptyRegistry,
         ];
         yield 'list of object' => [
-            new ListType(new ObjectType()),
+            new Schema(type: SchemaType::Array, items: new Schema(type: SchemaType::Object)),
             new ResolvedAnnotation('list<object>', []),
+            $emptyRegistry,
         ];
         yield 'non-empty-list of string' => [
-            new ListType(new StringType(), nonEmpty: true),
+            new Schema(type: SchemaType::Array, items: new Schema(type: SchemaType::String), minItems: 1),
             new ResolvedAnnotation('non-empty-list<string>', []),
-        ];
-        yield 'list of class ref' => [
-            new ListType(new ClassRefType('Tag', 'App\\Dto\\Tag')),
-            new ResolvedAnnotation('list<Tag>', [['alias' => 'Tag', 'fqcn' => 'App\\Dto\\Tag']]),
-        ];
-        yield 'non-empty-list of class ref'      => [
-            new ListType(new ClassRefType('Tag', 'App\\Dto\\Tag'), nonEmpty: true),
-            new ResolvedAnnotation('non-empty-list<Tag>', [['alias' => 'Tag', 'fqcn' => 'App\\Dto\\Tag']]),
-        ];
-
-        // Class refs
-        yield 'class ref'                  => [
-            new ClassRefType('Address', 'App\\Dto\\Address'),
-            new ResolvedAnnotation('Address', [['alias' => 'Address', 'fqcn' => 'App\\Dto\\Address']]),
-        ];
-        yield 'class ref with alias'       => [
-            new ClassRefType('BillingAddress', 'App\\Dto\\Address'),
-            new ResolvedAnnotation('BillingAddress', [['alias' => 'BillingAddress', 'fqcn' => 'App\\Dto\\Address']]),
+            $emptyRegistry,
         ];
 
         // Enums
-        yield 'enum of strings'   => [new EnumLiteralType(['foo', 'bar']), new ResolvedAnnotation("'foo'|'bar'", [])];
-        yield 'enum of ints'      => [new EnumLiteralType([1, 2]), new ResolvedAnnotation('1|2', [])];
-        yield 'enum of mixed'     => [new EnumLiteralType(['foo', 1]), new ResolvedAnnotation("'foo'|1", [])];
-        yield 'enum single value' => [new EnumLiteralType(['pending']), new ResolvedAnnotation("'pending'", [])];
-        yield 'enum three ints'   => [new EnumLiteralType([1, 2, 3]), new ResolvedAnnotation('1|2|3', [])];
+        yield 'enum of strings' => [
+            new Schema(enum: ['foo', 'bar']),
+            new ResolvedAnnotation("'foo'|'bar'", []),
+            $emptyRegistry,
+        ];
+        yield 'enum of ints' => [
+            new Schema(enum: [1, 2]),
+            new ResolvedAnnotation('1|2', []),
+            $emptyRegistry,
+        ];
+        yield 'enum of mixed' => [
+            new Schema(enum: ['foo', 1]),
+            new ResolvedAnnotation("'foo'|1", []),
+            $emptyRegistry,
+        ];
+        yield 'enum single value' => [
+            new Schema(enum: ['pending']),
+            new ResolvedAnnotation("'pending'", []),
+            $emptyRegistry,
+        ];
+        yield 'enum three ints' => [
+            new Schema(enum: [1, 2, 3]),
+            new ResolvedAnnotation('1|2|3', []),
+            $emptyRegistry,
+        ];
 
         // Unions
-        yield 'union string null'                => [
-            new UnionType([new StringType(), new NullType()]),
+        yield 'oneOf string and null' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::String),
+                new Schema(type: SchemaType::Null),
+            ]),
             new ResolvedAnnotation('string|null', []),
+            $emptyRegistry,
         ];
-        yield 'union string int'                 => [
-            new UnionType([new StringType(), new IntType()]),
+        yield 'oneOf null and string (null hoisted)' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::Null),
+                new Schema(type: SchemaType::String),
+            ]),
+            new ResolvedAnnotation('string|null', []),
+            $emptyRegistry,
+        ];
+        yield 'oneOf string int' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::String),
+                new Schema(type: SchemaType::Integer),
+            ]),
             new ResolvedAnnotation('string|int', []),
+            $emptyRegistry,
         ];
-        yield 'union nullable non-empty-string'  => [
-            new UnionType([new StringType(nonEmpty: true), new NullType()]),
+        yield 'oneOf nullable non-empty-string' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::String, minLength: 1),
+                new Schema(type: SchemaType::Null),
+            ]),
             new ResolvedAnnotation('non-empty-string|null', []),
+            $emptyRegistry,
         ];
-        yield 'union string bool'                => [
-            new UnionType([new StringType(), new BoolType()]),
+        yield 'oneOf string and bool' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::String),
+                new Schema(type: SchemaType::Boolean),
+            ]),
             new ResolvedAnnotation('string|bool', []),
+            $emptyRegistry,
         ];
-        yield 'union nullable non-empty list'    => [
-            new UnionType([new ListType(new StringType(), nonEmpty: true), new NullType()]),
+        yield 'oneOf nullable non-empty list' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::Array, items: new Schema(type: SchemaType::String), minItems: 1),
+                new Schema(type: SchemaType::Null),
+            ]),
             new ResolvedAnnotation('non-empty-list<string>|null', []),
+            $emptyRegistry,
         ];
-        yield 'union ref and null'               => [
-            new UnionType([new ClassRefType('Person', 'App\\Dto\\Person'), new NullType()]),
+        yield 'type array string and null' => [
+            new Schema(type: [SchemaType::String, SchemaType::Null]),
+            new ResolvedAnnotation('string|null', []),
+            $emptyRegistry,
+        ];
+
+        // Class refs
+        $addressRegistry = new SchemaRegistry([
+            'file:///schemas/Address.json' => new Schema(type: SchemaType::Object),
+        ]);
+        yield 'class ref' => [
+            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Address.json'))),
+            new ResolvedAnnotation('Address', [['alias' => 'Address', 'fqcn' => 'App\\Dto\\Address']]),
+            $addressRegistry,
+        ];
+        yield 'class ref with alias' => [
+            new Schema(
+                ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')),
+                xAlias: 'BillingAddress',
+            ),
+            new ResolvedAnnotation(
+                'BillingAddress',
+                [['alias' => 'BillingAddress', 'fqcn' => 'App\\Dto\\Address']],
+            ),
+            $addressRegistry,
+        ];
+        yield 'oneOf ref and null' => [
+            new Schema(oneOf: [
+                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Person.json'))),
+                new Schema(type: SchemaType::Null),
+            ]),
             new ResolvedAnnotation('Person|null', [['alias' => 'Person', 'fqcn' => 'App\\Dto\\Person']]),
+            new SchemaRegistry([
+                'file:///schemas/Person.json' => new Schema(type: SchemaType::Object),
+            ]),
         ];
-        yield 'union two refs'                   => [
-            new UnionType([
-                new ClassRefType('Cat', 'App\\Dto\\Cat'),
-                new ClassRefType('Dog', 'App\\Dto\\Dog'),
+        yield 'oneOf two refs' => [
+            new Schema(oneOf: [
+                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Cat.json'))),
+                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Dog.json'))),
             ]),
             new ResolvedAnnotation('Cat|Dog', [
                 ['alias' => 'Cat', 'fqcn' => 'App\\Dto\\Cat'],
                 ['alias' => 'Dog', 'fqcn' => 'App\\Dto\\Dog'],
             ]),
-        ];
-        yield 'union three refs'                 => [
-            new UnionType([
-                new ClassRefType('Cat', 'App\\Dto\\Cat'),
-                new ClassRefType('Dog', 'App\\Dto\\Dog'),
-                new ClassRefType('Bird', 'App\\Dto\\Bird'),
-            ]),
-            new ResolvedAnnotation('Cat|Dog|Bird', [
-                ['alias' => 'Cat', 'fqcn' => 'App\\Dto\\Cat'],
-                ['alias' => 'Dog', 'fqcn' => 'App\\Dto\\Dog'],
-                ['alias' => 'Bird', 'fqcn' => 'App\\Dto\\Bird'],
+            new SchemaRegistry([
+                'file:///schemas/Cat.json' => new Schema(type: SchemaType::Object),
+                'file:///schemas/Dog.json' => new Schema(type: SchemaType::Object),
             ]),
         ];
-        yield 'union string undefined (optional)' => [
-            new UnionType([new StringType(), new UndefinedType()]),
-            new ResolvedAnnotation('string|Undefined', [['alias' => 'Undefined', 'fqcn' => Undefined::class]]),
+
+        // Optional / Undefined
+        yield 'optional string adds Undefined' => [
+            new Schema(type: SchemaType::String, required: false),
+            new ResolvedAnnotation(
+                'string|Undefined',
+                [['alias' => 'Undefined', 'fqcn' => Undefined::class]],
+            ),
+            $emptyRegistry,
+        ];
+        yield 'optional mixed does not add Undefined' => [
+            new Schema(required: false),
+            new ResolvedAnnotation('mixed', []),
+            $emptyRegistry,
+        ];
+        yield 'optional with default does not add Undefined' => [
+            new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo')),
+            new ResolvedAnnotation('string', []),
+            $emptyRegistry,
         ];
     }
 
-    #[DataProvider('provideAnnotations')]
-    public function testAnnotation(PhpType $type, ResolvedAnnotation $expected): void
+    #[DataProvider('provideCases')]
+    public function testGenerate(Schema $schema, ResolvedAnnotation $expected, SchemaRegistry $registry): void
     {
-        self::assertEquals($expected, new DefaultAnnotationGenerator()->generate($type));
+        self::assertEquals($expected, self::make($registry)->generate($schema));
     }
 }

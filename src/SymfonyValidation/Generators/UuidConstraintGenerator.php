@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
 use Symfony\Component\Validator\Constraints\Uuid;
 
 final readonly class UuidConstraintGenerator implements ConstraintGenerator
 {
-    public function generate(PhpType $type): ?Constraint
+    public function __construct(
+        private SchemaResolver $resolver,
+    ) {
+    }
+
+    public function generate(Schema $schema): ?Constraint
     {
-        if (!$type instanceof StringType || $type->format !== 'uuid') {
+        $resolved = $this->resolver->resolved($schema);
+
+        if ($resolved->type !== SchemaType::String || $resolved->format !== 'uuid') {
             return null;
         }
 

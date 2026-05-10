@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassConstantRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintList;
@@ -34,7 +36,6 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
      * @param list<ConstraintGenerator> $generators
      */
     public function __construct(
-        private TypeGenerator $typeGenerator,
         private array $generators,
     )
     {
@@ -42,12 +43,10 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
 
     public function modify(object $context): void
     {
-        $type = $this->typeGenerator->generate($context->propertySchema);
-
         $context->namespace->addUse('Symfony\Component\Validator\Constraints', 'Assert');
 
         foreach ($this->generators as $generator) {
-            $constraint = $generator->generate($type);
+            $constraint = $generator->generate($context->propertySchema);
             if ($constraint !== null) {
                 $context->parameter->addAttribute(
                     $constraint->name,
@@ -110,20 +109,23 @@ final readonly class SymfonyValidationModifier implements PropertyModifier
     /**
      * @return list<ConstraintGenerator>
      */
-    public static function defaultGenerators(): array
-    {
+    public static function defaultGenerators(
+        SchemaResolver $resolver,
+        FqcnResolver   $fqcnResolver,
+        SchemaRegistry $registry,
+    ): array {
         return [
-            new TypeConstraintGenerator(new DefaultTypeRenderer()),
-            new NotNullConstraintGenerator(),
-            new UuidConstraintGenerator(),
-            new DateConstraintGenerator(),
-            new DateTimeConstraintGenerator(),
-            new RegexConstraintGenerator(),
-            new GreaterThanOrEqualConstraintGenerator(),
-            new LessThanOrEqualConstraintGenerator(),
-            new ChoiceConstraintGenerator(),
-            new AllConstraintGenerator(AllConstraintGenerator::defaultGenerators()),
-            new ValidConstraintGenerator(),
+            new TypeConstraintGenerator(new DefaultTypeRenderer($fqcnResolver, $registry)),
+            new NotNullConstraintGenerator($resolver),
+            new UuidConstraintGenerator($resolver),
+            new DateConstraintGenerator($resolver),
+            new DateTimeConstraintGenerator($resolver),
+            new RegexConstraintGenerator($resolver),
+            new GreaterThanOrEqualConstraintGenerator($resolver),
+            new LessThanOrEqualConstraintGenerator($resolver),
+            new ChoiceConstraintGenerator($resolver),
+            new AllConstraintGenerator(AllConstraintGenerator::defaultGenerators($resolver, $fqcnResolver, $registry)),
+            new ValidConstraintGenerator($resolver),
         ];
     }
 }

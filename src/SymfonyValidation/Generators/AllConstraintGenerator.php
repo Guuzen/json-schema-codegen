@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintList;
@@ -23,16 +26,17 @@ final readonly class AllConstraintGenerator implements ConstraintGenerator
     {
     }
 
-    public function generate(PhpType $type): ?Constraint
+    public function generate(Schema $schema): ?Constraint
     {
-        if (!$type instanceof ListType) {
+        if ($schema->type !== SchemaType::Array) {
             return null;
         }
 
+        $itemSchema = $schema->items ?? new Schema();
         $itemConstraints = [];
 
         foreach ($this->generators as $factory) {
-            $constraint = $factory->generate($type->itemType);
+            $constraint = $factory->generate($itemSchema);
             if ($constraint !== null) {
                 $itemConstraints[] = $constraint;
             }
@@ -48,18 +52,21 @@ final readonly class AllConstraintGenerator implements ConstraintGenerator
     /**
      * @return list<ConstraintGenerator>
      */
-    public static function defaultGenerators(): array
-    {
+    public static function defaultGenerators(
+        SchemaResolver $resolver,
+        FqcnResolver   $fqcnResolver,
+        SchemaRegistry $registry,
+    ): array {
         return [
-            new TypeConstraintGenerator(new DefaultTypeRenderer()),
-            new NotNullConstraintGenerator(),
-            new UuidConstraintGenerator(),
-            new DateConstraintGenerator(),
-            new DateTimeConstraintGenerator(),
-            new RegexConstraintGenerator(),
-            new GreaterThanOrEqualConstraintGenerator(),
-            new LessThanOrEqualConstraintGenerator(),
-            new ChoiceConstraintGenerator(),
+            new TypeConstraintGenerator(new DefaultTypeRenderer($fqcnResolver, $registry)),
+            new NotNullConstraintGenerator($resolver),
+            new UuidConstraintGenerator($resolver),
+            new DateConstraintGenerator($resolver),
+            new DateTimeConstraintGenerator($resolver),
+            new RegexConstraintGenerator($resolver),
+            new GreaterThanOrEqualConstraintGenerator($resolver),
+            new LessThanOrEqualConstraintGenerator($resolver),
+            new ChoiceConstraintGenerator($resolver),
         ];
     }
 }

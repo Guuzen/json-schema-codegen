@@ -4,110 +4,164 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\BoolType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ClassRefType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\EnumLiteralType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\FloatType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\IntType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ListType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\MixedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\NullType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\ObjectType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\StringType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UndefinedType;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType\UnionType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\RenderedType;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Undefined;
+use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class TypeRendererTest extends TestCase
 {
-    /**
-     * @return iterable<string, array{PhpType, list<RenderedType>}>
-     */
-    public static function provideTypes(): iterable
+    private static function makeRenderer(SchemaRegistry $registry = new SchemaRegistry([])): DefaultTypeRenderer
     {
+        return new DefaultTypeRenderer(
+            new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
+            $registry,
+        );
+    }
+
+    /**
+     * @return iterable<string, array{Schema, list<RenderedType>, SchemaRegistry}>
+     */
+    public static function provideCases(): iterable
+    {
+        $emptyRegistry = new SchemaRegistry([]);
+        $undefined     = new RenderedType(
+            'Undefined',
+            ['alias' => 'Undefined', 'fqcn' => Undefined::class],
+        );
+
         // Primitives
-        yield 'string'    => [new StringType(), [new RenderedType('string')]];
-        yield 'integer'   => [new IntType(), [new RenderedType('integer')]];
-        yield 'float'     => [new FloatType(), [new RenderedType('float')]];
-        yield 'bool'      => [new BoolType(), [new RenderedType('bool')]];
-        yield 'null'      => [new NullType(), []];
-        yield 'object'    => [new ObjectType(), [new RenderedType('object')]];
-        yield 'mixed'     => [new MixedType(), []];
-        yield 'list'      => [new ListType(new MixedType()), [new RenderedType('list')]];
-        yield 'undefined' => [
-            new UndefinedType(),
-            [new RenderedType('Undefined', ['alias' => 'Undefined', 'fqcn' => Undefined::class])],
+        yield 'string'  => [new Schema(type: SchemaType::String), [new RenderedType('string')], $emptyRegistry];
+        yield 'integer' => [new Schema(type: SchemaType::Integer), [new RenderedType('integer')], $emptyRegistry];
+        yield 'float'   => [new Schema(type: SchemaType::Number), [new RenderedType('float')], $emptyRegistry];
+        yield 'bool'    => [new Schema(type: SchemaType::Boolean), [new RenderedType('bool')], $emptyRegistry];
+        yield 'null'    => [new Schema(type: SchemaType::Null), [], $emptyRegistry];
+        yield 'object'  => [new Schema(type: SchemaType::Object), [new RenderedType('object')], $emptyRegistry];
+        yield 'mixed'   => [new Schema(), [], $emptyRegistry];
+        yield 'list'    => [new Schema(type: SchemaType::Array), [new RenderedType('list')], $emptyRegistry];
+
+        // Enums
+        yield 'string enum' => [
+            new Schema(enum: ['a', 'b']),
+            [new RenderedType('string')],
+            $emptyRegistry,
+        ];
+        yield 'integer enum' => [
+            new Schema(enum: [1, 2]),
+            [new RenderedType('integer')],
+            $emptyRegistry,
+        ];
+        yield 'mixed int+str enum' => [
+            new Schema(enum: ['a', 1]),
+            [new RenderedType('string'), new RenderedType('integer')],
+            $emptyRegistry,
+        ];
+
+        // Unions
+        yield 'oneOf string and null' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::String),
+                new Schema(type: SchemaType::Null),
+            ]),
+            [new RenderedType('string')],
+            $emptyRegistry,
+        ];
+        yield 'oneOf int and string' => [
+            new Schema(oneOf: [
+                new Schema(type: SchemaType::Integer),
+                new Schema(type: SchemaType::String),
+            ]),
+            [new RenderedType('integer'), new RenderedType('string')],
+            $emptyRegistry,
+        ];
+        yield 'type array string and null' => [
+            new Schema(type: [SchemaType::String, SchemaType::Null]),
+            [new RenderedType('string')],
+            $emptyRegistry,
         ];
 
         // Class refs
-        yield 'class ref' => [
-            new ClassRefType('HomeAddress', 'App\\Dto\\address\\Address'),
-            [new RenderedType('HomeAddress', ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address'])],
+        $addressRegistry = new SchemaRegistry([
+            'file:///schemas/Address.json' => new Schema(type: SchemaType::Object),
+        ]);
+        yield 'class ref via $ref' => [
+            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Address.json'))),
+            [new RenderedType('Address', ['alias' => 'Address', 'fqcn' => 'App\\Dto\\Address'])],
+            $addressRegistry,
+        ];
+        yield 'class ref with alias' => [
+            new Schema(
+                ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')),
+                xAlias: 'HomeAddress',
+            ),
+            [new RenderedType('HomeAddress', ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\Address'])],
+            $addressRegistry,
+        ];
+        yield 'oneOf two refs' => [
+            new Schema(oneOf: [
+                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/CreditCardPayment.json'))),
+                new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/BankTransferPayment.json'))),
+            ]),
+            [
+                new RenderedType('CreditCardPayment', [
+                    'alias' => 'CreditCardPayment',
+                    'fqcn'  => 'App\\Dto\\CreditCardPayment',
+                ]),
+                new RenderedType('BankTransferPayment', [
+                    'alias' => 'BankTransferPayment',
+                    'fqcn'  => 'App\\Dto\\BankTransferPayment',
+                ]),
+            ],
+            new SchemaRegistry([
+                'file:///schemas/CreditCardPayment.json'   => new Schema(type: SchemaType::Object),
+                'file:///schemas/BankTransferPayment.json' => new Schema(type: SchemaType::Object),
+            ]),
         ];
 
-        // Enums
-        yield 'string enum'        => [new EnumLiteralType(['a', 'b']), [new RenderedType('string')]];
-        yield 'integer enum'       => [new EnumLiteralType([1, 2]), [new RenderedType('integer')]];
-        yield 'mixed int+str enum' => [new EnumLiteralType(['a', 1]), [new RenderedType('string'), new RenderedType('integer')]];
-
-        // Unions
-        yield 'union string null' => [
-            new UnionType([new StringType(), new NullType()]),
+        // Optional / Undefined
+        yield 'optional string' => [
+            new Schema(type: SchemaType::String, required: false),
+            [new RenderedType('string'), $undefined],
+            $emptyRegistry,
+        ];
+        yield 'optional ref to object' => [
+            new Schema(
+                required: false,
+                ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')),
+                xAlias: 'HomeAddress',
+            ),
+            [
+                new RenderedType('HomeAddress', ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\Address']),
+                $undefined,
+            ],
+            $addressRegistry,
+        ];
+        yield 'optional multi-type union without null' => [
+            new Schema(type: [SchemaType::Integer, SchemaType::String], required: false),
+            [new RenderedType('integer'), new RenderedType('string'), $undefined],
+            $emptyRegistry,
+        ];
+        yield 'optional with default does not add Undefined' => [
+            new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo')),
             [new RenderedType('string')],
-        ];
-        yield 'union int string' => [
-            new UnionType([new IntType(), new StringType()]),
-            [new RenderedType('integer'), new RenderedType('string')],
-        ];
-        yield 'union ref null' => [
-            new UnionType([new ClassRefType('HomeAddress', 'App\\Dto\\address\\Address'), new NullType()]),
-            [new RenderedType('HomeAddress', ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address'])],
-        ];
-        yield 'union two refs' => [
-            new UnionType([
-                new ClassRefType('CreditCardPayment', 'App\\Dto\\CreditCardPayment'),
-                new ClassRefType('BankTransferPayment', 'App\\Dto\\BankTransferPayment'),
-            ]),
-            [
-                new RenderedType('CreditCardPayment', ['alias' => 'CreditCardPayment', 'fqcn' => 'App\\Dto\\CreditCardPayment']),
-                new RenderedType('BankTransferPayment', ['alias' => 'BankTransferPayment', 'fqcn' => 'App\\Dto\\BankTransferPayment']),
-            ],
-        ];
-        yield 'union string undefined (optional)' => [
-            new UnionType([new StringType(), new UndefinedType()]),
-            [new RenderedType('string'), new RenderedType('Undefined', ['alias' => 'Undefined', 'fqcn' => Undefined::class])],
-        ];
-        yield 'union ref undefined (optional)' => [
-            new UnionType([
-                new ClassRefType('HomeAddress', 'App\\Dto\\address\\Address'),
-                new UndefinedType(),
-            ]),
-            [
-                new RenderedType('HomeAddress', ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\address\\Address']),
-                new RenderedType('Undefined', ['alias' => 'Undefined', 'fqcn' => Undefined::class]),
-            ],
-        ];
-        yield 'union int string undefined (optional multi)' => [
-            new UnionType([new IntType(), new StringType(), new UndefinedType()]),
-            [
-                new RenderedType('integer'),
-                new RenderedType('string'),
-                new RenderedType('Undefined', ['alias' => 'Undefined', 'fqcn' => Undefined::class]),
-            ],
+            $emptyRegistry,
         ];
     }
 
     /**
      * @param list<RenderedType> $expected
      */
-    #[DataProvider('provideTypes')]
-    public function testType(PhpType $type, array $expected): void
+    #[DataProvider('provideCases')]
+    public function testRender(Schema $schema, array $expected, SchemaRegistry $registry): void
     {
-        self::assertEquals($expected, new DefaultTypeRenderer()->render($type));
+        self::assertEquals($expected, self::makeRenderer($registry)->render($schema));
     }
 }

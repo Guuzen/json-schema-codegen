@@ -20,9 +20,9 @@ use Guuzen\JsonSchemaCodegen\Generator\PathTransformer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\TypeGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
 
@@ -42,6 +42,8 @@ final class NetteFilesGeneratorFactory
     ): FilesGenerator
     {
         $schemaRegistry = new SchemaRegistry();
+        $fqcnResolver   = self::createFqcnResolver($config);
+        $schemaResolver = new SchemaResolver($schemaRegistry);
 
         return new FilesGenerator(
             pathCollector: $pathCollector ?? PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
@@ -58,20 +60,22 @@ final class NetteFilesGeneratorFactory
             generators: $generators ?? [
                 new ClassGenerator(
                     printer: new NettePrinter(),
-                    createPhpFile: new CreatePhpFile(self::createFqcnResolver($config)),
+                    createPhpFile: new CreatePhpFile($fqcnResolver),
                     constructorParameterOrder: new ConstructorParameterOrder(),
                     modifiers: [
                         new CommentModifier(new DefaultCommentGenerator()),
                         new AnnotationModifier(
-                            generator: new DefaultAnnotationGenerator(),
-                            typeGenerator: new TypeGenerator(self::createFqcnResolver($config), $schemaRegistry),
+                            new DefaultAnnotationGenerator($fqcnResolver, $schemaRegistry),
                         ),
                         new SymfonyValidationModifier(
-                            typeGenerator: new TypeGenerator(self::createFqcnResolver($config), $schemaRegistry),
-                            generators: SymfonyValidationModifier::defaultGenerators(),
+                            generators: SymfonyValidationModifier::defaultGenerators(
+                                $schemaResolver,
+                                $fqcnResolver,
+                                $schemaRegistry,
+                            ),
                         ),
                         new OptionalModifier(
-                            new DefaultDefaultGenerator(self::createFqcnResolver($config))
+                            new DefaultDefaultGenerator($fqcnResolver)
                         ),
                     ],
                 ),

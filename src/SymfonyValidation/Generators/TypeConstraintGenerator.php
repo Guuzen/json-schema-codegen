@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeGenerator\PhpType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\TypeRenderer;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
@@ -15,15 +15,14 @@ final readonly class TypeConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
         private TypeRenderer $typeRenderer,
-    )
-    {
+    ) {
     }
 
-    public function generate(PhpType $type): ?Constraint
+    public function generate(Schema $schema): ?Constraint
     {
         $values = [];
 
-        foreach ($this->typeRenderer->render($type) as $resolvedType) {
+        foreach ($this->typeRenderer->render($schema) as $resolvedType) {
             if ($resolvedType->import === null) {
                 $values[] = $resolvedType->type;
             } else {
