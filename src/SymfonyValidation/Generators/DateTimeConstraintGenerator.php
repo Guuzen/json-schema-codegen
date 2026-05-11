@@ -28,7 +28,7 @@ final readonly class DateTimeConstraintGenerator implements ConstraintGenerator
     {
         return [
             ...$this->root($schema),
-            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->anyOf($schema, $this),
             ...$this->schemaWalker->ref($schema, $this),
         ];
     }

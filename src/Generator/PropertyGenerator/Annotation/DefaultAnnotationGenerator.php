@@ -46,8 +46,8 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
             return $this->renderRequired($referenced);
         }
 
-        if ($schema->oneOf !== null) {
-            return $this->renderBranches($schema->oneOf);
+        if ($schema->anyOf !== null) {
+            return $this->renderBranches($schema->anyOf);
         }
 
         if (is_array($schema->type)) {
@@ -140,7 +140,7 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
     private function isMixed(Schema $schema): bool
     {
         return $schema->type === null
-            && $schema->oneOf === null
+            && $schema->anyOf === null
             && $schema->ref === null
             && $schema->enum === null;
     }

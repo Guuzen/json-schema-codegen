@@ -72,13 +72,13 @@ final readonly class SchemaParser
             }
         }
 
-        $oneOf = null;
-        if (isset($node['oneOf']) && is_array($node['oneOf'])) {
-            /** @var list<array<string, mixed>> $rawOneOf */
-            $rawOneOf = $node['oneOf'];
-            $oneOf = array_map(
+        $anyOf = null;
+        if (isset($node['anyOf']) && is_array($node['anyOf'])) {
+            /** @var list<array<string, mixed>> $rawAnyOf */
+            $rawAnyOf = $node['anyOf'];
+            $anyOf = array_map(
                 fn(array $branch) => $this->parseSchemaNode($branch, $schemaUri),
-                $rawOneOf,
+                $rawAnyOf,
             );
         }
 
@@ -126,7 +126,7 @@ final readonly class SchemaParser
             properties: $properties,
             items: $items,
             ref: $ref,
-            oneOf: $oneOf,
+            anyOf: $anyOf,
             enum: $enum,
             title: $title,
             xAlias: $xAlias,

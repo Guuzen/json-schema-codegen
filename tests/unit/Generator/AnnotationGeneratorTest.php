@@ -146,48 +146,48 @@ final class AnnotationGeneratorTest extends TestCase
         ];
 
         // Unions
-        yield 'oneOf string and null' => [
-            new Schema(oneOf: [
+        yield 'anyOf string and null' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::String),
                 new Schema(type: SchemaType::Null),
             ]),
             new ResolvedAnnotation('string|null', []),
             $emptyRegistry,
         ];
-        yield 'oneOf null and string (null hoisted)' => [
-            new Schema(oneOf: [
+        yield 'anyOf null and string (null hoisted)' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::Null),
                 new Schema(type: SchemaType::String),
             ]),
             new ResolvedAnnotation('string|null', []),
             $emptyRegistry,
         ];
-        yield 'oneOf string int' => [
-            new Schema(oneOf: [
+        yield 'anyOf string int' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::String),
                 new Schema(type: SchemaType::Integer),
             ]),
             new ResolvedAnnotation('string|int', []),
             $emptyRegistry,
         ];
-        yield 'oneOf nullable non-empty-string' => [
-            new Schema(oneOf: [
+        yield 'anyOf nullable non-empty-string' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::String, minLength: 1),
                 new Schema(type: SchemaType::Null),
             ]),
             new ResolvedAnnotation('non-empty-string|null', []),
             $emptyRegistry,
         ];
-        yield 'oneOf string and bool' => [
-            new Schema(oneOf: [
+        yield 'anyOf string and bool' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::String),
                 new Schema(type: SchemaType::Boolean),
             ]),
             new ResolvedAnnotation('string|bool', []),
             $emptyRegistry,
         ];
-        yield 'oneOf nullable non-empty list' => [
-            new Schema(oneOf: [
+        yield 'anyOf nullable non-empty list' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::Array, items: new Schema(type: SchemaType::String), minItems: 1),
                 new Schema(type: SchemaType::Null),
             ]),
@@ -220,8 +220,8 @@ final class AnnotationGeneratorTest extends TestCase
             ),
             $addressRegistry,
         ];
-        yield 'oneOf ref and null' => [
-            new Schema(oneOf: [
+        yield 'anyOf ref and null' => [
+            new Schema(anyOf: [
                 new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Person.json'))),
                 new Schema(type: SchemaType::Null),
             ]),
@@ -230,8 +230,8 @@ final class AnnotationGeneratorTest extends TestCase
                 'file:///schemas/Person.json' => new Schema(type: SchemaType::Object),
             ]),
         ];
-        yield 'oneOf two refs' => [
-            new Schema(oneOf: [
+        yield 'anyOf two refs' => [
+            new Schema(anyOf: [
                 new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Cat.json'))),
                 new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Dog.json'))),
             ]),

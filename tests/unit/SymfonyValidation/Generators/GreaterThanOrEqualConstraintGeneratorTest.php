@@ -29,8 +29,8 @@ final class GreaterThanOrEqualConstraintGeneratorTest extends TestCase
             'expected' => [new Constraint(name: GreaterThanOrEqual::class, args: [0])],
         ];
 
-        yield 'oneOf integer zero minimum or null' => [
-            'schema' => new Schema(oneOf: [
+        yield 'anyOf integer zero minimum or null' => [
+            'schema' => new Schema(anyOf: [
                 new Schema(type: SchemaType::Integer, minimum: 0),
                 new Schema(type: SchemaType::Null),
             ]),
@@ -38,10 +38,10 @@ final class GreaterThanOrEqualConstraintGeneratorTest extends TestCase
             'expected' => [new Constraint(name: GreaterThanOrEqual::class, args: [0])],
         ];
 
-        yield 'oneOf and root constraint' => [
+        yield 'anyOf and root constraint' => [
             'schema' => new Schema(
                 type: SchemaType::Integer,
-                oneOf: [
+                anyOf: [
                     new Schema(type: SchemaType::Integer, minimum: 1),
                     new Schema(type: SchemaType::Null),
                 ],
@@ -69,7 +69,7 @@ final class GreaterThanOrEqualConstraintGeneratorTest extends TestCase
             ],
         ];
 
-        yield 'root constraint and ref constraint with oneOf' => [
+        yield 'root constraint and ref constraint with anyOf' => [
             'schema' => new Schema(
                 type: SchemaType::Integer,
                 ref: new Ref(
@@ -80,7 +80,7 @@ final class GreaterThanOrEqualConstraintGeneratorTest extends TestCase
             'registry' => new SchemaRegistry([
                 'file:///schemas/Cent.json' => new Schema(
                     type: SchemaType::Integer,
-                    oneOf: [
+                    anyOf: [
                         new Schema(type: SchemaType::Integer, minimum: 2),
                         new Schema(type: SchemaType::Null),
                     ],
@@ -94,9 +94,9 @@ final class GreaterThanOrEqualConstraintGeneratorTest extends TestCase
             ],
         ];
 
-        yield 'oneOf ref or null' => [
+        yield 'anyOf ref or null' => [
             'schema' => new Schema(
-                oneOf: [
+                anyOf: [
                     new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Cent.json'))),
                     new Schema(type: SchemaType::Null),
                 ],

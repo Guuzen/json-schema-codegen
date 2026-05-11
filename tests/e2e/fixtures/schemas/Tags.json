@@ -12,7 +12,7 @@
             "description": "List of tag enums"
         },
         "tag": {
-            "oneOf": [
+            "anyOf": [
                 { "type": "null" },
                 {
                     "enum": ["featured", "sale", "new", "trending"],

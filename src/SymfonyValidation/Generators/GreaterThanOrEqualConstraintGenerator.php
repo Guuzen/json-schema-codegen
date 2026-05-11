@@ -22,7 +22,7 @@ final readonly class GreaterThanOrEqualConstraintGenerator implements Constraint
     {
         return [
             ...$this->root($schema),
-            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->anyOf($schema, $this),
             ...$this->schemaWalker->ref($schema, $this),
         ];
     }

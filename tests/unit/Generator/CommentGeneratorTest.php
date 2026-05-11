@@ -25,29 +25,29 @@ final class CommentGeneratorTest extends TestCase
             new Schema(type: SchemaType::String, description: 'parent'),
             'parent',
         ];
-        yield 'oneOf branch descriptions appended to parent description' => [
+        yield 'anyOf branch descriptions appended to parent description' => [
             new Schema(
-                description: 'parent',
-                oneOf: [
+                anyOf: [
                     new Schema(type: SchemaType::String, description: 'first branch'),
                     new Schema(type: SchemaType::Null),
                     new Schema(type: SchemaType::Integer, description: 'third branch'),
                 ],
+                description: 'parent',
             ),
             "parent\n\nfirst branch\nthird branch",
         ];
-        yield 'oneOf branch descriptions without parent description' => [
+        yield 'anyOf branch descriptions without parent description' => [
             new Schema(
-                oneOf: [
+                anyOf: [
                     new Schema(type: SchemaType::String, description: 'first branch'),
                     new Schema(type: SchemaType::Integer, description: 'second branch'),
                 ],
             ),
             "first branch\nsecond branch",
         ];
-        yield 'oneOf without any descriptions' => [
+        yield 'anyOf without any descriptions' => [
             new Schema(
-                oneOf: [
+                anyOf: [
                     new Schema(type: SchemaType::String),
                     new Schema(type: SchemaType::Null),
                 ],

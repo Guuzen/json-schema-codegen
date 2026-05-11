@@ -25,7 +25,7 @@ final readonly class ValidConstraintGenerator implements ConstraintGenerator
     {
         $constraints = [
             ...$this->root($schema),
-            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->anyOf($schema, $this),
             ...$this->schemaWalker->ref($schema, $this),
             ...($schema->items !== null ? $this->generate($schema->items) : []),
         ];

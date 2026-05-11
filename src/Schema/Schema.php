@@ -19,7 +19,7 @@ final readonly class Schema
     /**
      * @param SchemaType|list<SchemaType>|null $type
      * @param array<string, Schema>|null       $properties
-     * @param list<Schema>|null                $oneOf
+     * @param list<Schema>|null                $anyOf
      * @param list<string|int>|null            $enum
      */
     public function __construct(
@@ -28,7 +28,7 @@ final readonly class Schema
         public ?array $properties = null,
         public ?Schema $items = null,
         public ?Ref $ref = null,
-        public ?array $oneOf = null,
+        public ?array $anyOf = null,
         public ?array $enum = null,
         public ?string $title = null,
         public ?string $xAlias = null,

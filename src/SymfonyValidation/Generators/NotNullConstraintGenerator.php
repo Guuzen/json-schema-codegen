@@ -42,7 +42,7 @@ final readonly class NotNullConstraintGenerator implements ConstraintGenerator
             return true;
         }
 
-        foreach ($schema->oneOf ?? [] as $branch) {
+        foreach ($schema->anyOf ?? [] as $branch) {
             if ($this->isNullable($branch)) {
                 return true;
             }

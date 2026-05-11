@@ -23,8 +23,8 @@ use PHPUnit\Framework\TestCase;
  * - CouponCode: standalone string schema referenced from Order
  * - Quantity: standalone integer schema referenced from Order
  * - Customer: $ref with title aliases, same class name from different sub-namespaces
- * - Order: $ref same namespace, $ref cross-namespace, nullable $ref (oneOf ref+null),
- *          list<$ref items>, oneOf two $ref branches
+ * - Order: $ref same namespace, $ref cross-namespace, nullable $ref (anyOf ref+null),
+ *          list<$ref items>, anyOf two $ref branches
  * - Defaults: scalar defaults, $ref with null default, $ref with object literal default (new ClassName(...))
  * - Note, OrderItem, CreditCardPayment, BankTransferPayment: simple helper objects
  * - address/Address, billing/Address: schemas in subdirectories (namespace derivation)
@@ -42,7 +42,7 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'Product.php' => self::SCHEMAS . 'Product.php',
         // Customer: $ref with title aliases, same class name from different namespaces
         self::EXPECTED . 'Customer.php' => self::SCHEMAS . 'Customer.php',
-        // Order: $ref same/cross namespace, inline scalar refs, nullable $ref, list<$ref>, oneOf two refs
+        // Order: $ref same/cross namespace, inline scalar refs, nullable $ref, list<$ref>, anyOf two refs
         self::EXPECTED . 'Order.php' => self::SCHEMAS . 'Order.php',
         // Simple helper schemas referenced by Order and Customer
         self::EXPECTED . 'Note.php' => self::SCHEMAS . 'Note.php',

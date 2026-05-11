@@ -10,23 +10,23 @@ final class DefaultCommentGenerator implements CommentGenerator
 {
     public function generate(Schema $schema): ?string
     {
-        $oneOfDescriptions = [];
-        foreach ($schema->oneOf ?? [] as $branch) {
+        $anyOfDescriptions = [];
+        foreach ($schema->anyOf ?? [] as $branch) {
             if ($branch->description !== null) {
-                $oneOfDescriptions[] = $branch->description;
+                $anyOfDescriptions[] = $branch->description;
             }
         }
 
-        $joinedOneOfDescriptions = implode("\n", $oneOfDescriptions);
+        $joinedAnyOfDescriptions = implode("\n", $anyOfDescriptions);
 
-        if ($schema->description !== null && $oneOfDescriptions !== []) {
-            return "$schema->description\n\n$joinedOneOfDescriptions";
+        if ($schema->description !== null && $anyOfDescriptions !== []) {
+            return "$schema->description\n\n$joinedAnyOfDescriptions";
         }
 
-        if ($oneOfDescriptions === []) {
+        if ($anyOfDescriptions === []) {
             return $schema->description;
         }
 
-        return $joinedOneOfDescriptions;
+        return $joinedAnyOfDescriptions;
     }
 }

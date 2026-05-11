@@ -47,8 +47,8 @@ final readonly class DefaultTypeRenderer implements TypeRenderer
             return $this->renderRequired($referenced);
         }
 
-        if ($schema->oneOf !== null) {
-            return $this->renderBranches($schema->oneOf);
+        if ($schema->anyOf !== null) {
+            return $this->renderBranches($schema->anyOf);
         }
 
         if (is_array($schema->type)) {

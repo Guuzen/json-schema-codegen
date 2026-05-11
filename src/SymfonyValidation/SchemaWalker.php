@@ -16,21 +16,22 @@ final readonly class SchemaWalker
     }
 
     /**
-     * TODO branches are collected and concatenated, which means callers AND
-     *
-     * them via stacked Symfony attributes. Correct for allOf-style composition
-     * but wrong for true oneOf (XOR) and anyOf (OR). Fix later by dispatching
-     * on the combinator or emitting a composite constraint (AtLeastOneOf for
-     * anyOf, a custom OneOf for oneOf).
+     * Branches are collected and concatenated, so callers AND them via stacked
+     * Symfony attributes. This is wrong for anyOf in the general case, but
+     * works for every shape currently in use: nullable wrappers (null branch
+     * contributes nothing and Symfony skips most constraints on null) and
+     * type unions (collapsed into a single Type constraint upstream). If a
+     * schema ever lands with two parallel branches both carrying non-type
+     * constraints, wrap the per-branch results in Symfony's AtLeastOneOf here.
      *
      * @return list<Constraint>
      */
-    public function oneOf(Schema $schema, ConstraintGenerator $generator): array
+    public function anyOf(Schema $schema, ConstraintGenerator $generator): array
     {
         $constraints = [];
 
-        if ($schema->oneOf !== null) {
-            foreach ($schema->oneOf as $branch) {
+        if ($schema->anyOf !== null) {
+            foreach ($schema->anyOf as $branch) {
                 $constraints = [
                     ...$constraints,
                     ...$generator->generate($branch),

@@ -33,8 +33,8 @@ final class ChoiceConstraintGeneratorTest extends TestCase
         $enum          = new Schema(enum: ['a', 'b']);
 
         yield 'enum literal'           => [$enum, $choice, $emptyRegistry];
-        yield 'nullable enum (oneOf)'  => [
-            new Schema(oneOf: [$enum, new Schema(type: SchemaType::Null)]),
+        yield 'nullable enum (anyOf)'  => [
+            new Schema(anyOf: [$enum, new Schema(type: SchemaType::Null)]),
             $choice,
             $emptyRegistry,
         ];
@@ -48,13 +48,13 @@ final class ChoiceConstraintGeneratorTest extends TestCase
         yield 'string'             => [new Schema(type: SchemaType::String), [], $emptyRegistry];
         yield 'int'                => [new Schema(type: SchemaType::Integer), [], $emptyRegistry];
         yield 'bool'               => [new Schema(type: SchemaType::Boolean), [], $emptyRegistry];
-        yield 'oneOf without enum' => [
-            new Schema(oneOf: [new Schema(type: SchemaType::String), new Schema(type: SchemaType::Integer)]),
+        yield 'anyOf without enum' => [
+            new Schema(anyOf: [new Schema(type: SchemaType::String), new Schema(type: SchemaType::Integer)]),
             [],
             $emptyRegistry,
         ];
         yield 'nullable string'    => [
-            new Schema(oneOf: [new Schema(type: SchemaType::String), new Schema(type: SchemaType::Null)]),
+            new Schema(anyOf: [new Schema(type: SchemaType::String), new Schema(type: SchemaType::Null)]),
             [],
             $emptyRegistry,
         ];

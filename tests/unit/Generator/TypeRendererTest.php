@@ -66,16 +66,16 @@ final class TypeRendererTest extends TestCase
         ];
 
         // Unions
-        yield 'oneOf string and null' => [
-            new Schema(oneOf: [
+        yield 'anyOf string and null' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::String),
                 new Schema(type: SchemaType::Null),
             ]),
             [new RenderedType('string')],
             $emptyRegistry,
         ];
-        yield 'oneOf int and string' => [
-            new Schema(oneOf: [
+        yield 'anyOf int and string' => [
+            new Schema(anyOf: [
                 new Schema(type: SchemaType::Integer),
                 new Schema(type: SchemaType::String),
             ]),
@@ -105,8 +105,8 @@ final class TypeRendererTest extends TestCase
             [new RenderedType('HomeAddress', ['alias' => 'HomeAddress', 'fqcn' => 'App\\Dto\\Address'])],
             $addressRegistry,
         ];
-        yield 'oneOf two refs' => [
-            new Schema(oneOf: [
+        yield 'anyOf two refs' => [
+            new Schema(anyOf: [
                 new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/CreditCardPayment.json'))),
                 new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/BankTransferPayment.json'))),
             ]),
