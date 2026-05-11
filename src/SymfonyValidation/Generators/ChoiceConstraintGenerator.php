@@ -4,60 +4,40 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\SchemaWalker;
 use Symfony\Component\Validator\Constraints\Choice;
 
 final readonly class ChoiceConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
-        private SchemaResolver $resolver,
-    ) {
+        private SchemaWalker $schemaWalker,
+    )
+    {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
-        $enum = $this->findEnum($schema);
-        if ($enum === null) {
-            return null;
-        }
-
-        return new Constraint(Choice::class, ['choices' => $enum]);
+        return [
+            ...$this->root($schema),
+            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->ref($schema, $this),
+        ];
     }
 
     /**
-     * @return list<string|int>|null
+     * @return list<Constraint>
      */
-    private function findEnum(Schema $schema): ?array
+    private function root(Schema $schema): array
     {
-        $resolved = $this->resolver->resolved($schema);
+        $constraints = [];
 
-        if ($resolved->enum !== null) {
-            return $resolved->enum;
+        if ($schema->enum !== null) {
+            $constraints[] = new Constraint(Choice::class, ['choices' => $schema->enum]);
         }
 
-        if ($resolved->oneOf === null) {
-            return null;
-        }
-
-        $found = null;
-        foreach ($resolved->oneOf as $branch) {
-            $branch = $this->resolver->resolved($branch);
-            if ($branch->type === SchemaType::Null) {
-                continue;
-            }
-            if ($branch->enum === null) {
-                return null;
-            }
-            if ($found !== null) {
-                return null;
-            }
-            $found = $branch->enum;
-        }
-
-        return $found;
+        return $constraints;
     }
 }

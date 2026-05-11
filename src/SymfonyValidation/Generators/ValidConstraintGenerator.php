@@ -4,46 +4,49 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\SchemaWalker;
 use Symfony\Component\Validator\Constraints\Valid;
 
 final readonly class ValidConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
-        private SchemaResolver $resolver,
-    ) {
+        private SchemaWalker $schemaWalker,
+        private SchemaRegistry $registry,
+    )
+    {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
-        if (!$this->containsClassRef($schema)) {
-            return null;
-        }
+        $constraints = [
+            ...$this->root($schema),
+            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->ref($schema, $this),
+            ...($schema->items !== null ? $this->generate($schema->items) : []),
+        ];
 
-        return new Constraint(Valid::class, []);
+        // Valid has no args — every emission is identical, so collapse duplicates.
+        return $constraints === [] ? [] : [new Constraint(Valid::class, [])];
     }
 
-    private function containsClassRef(Schema $schema): bool
+    /**
+     * @return list<Constraint>
+     */
+    private function root(Schema $schema): array
     {
-        $resolved = $this->resolver->resolved($schema);
-
-        if ($resolved->ref !== null) {
-            return true;
+        if ($schema->ref === null) {
+            return [];
         }
 
-        foreach ($resolved->oneOf ?? [] as $branch) {
-            if ($this->containsClassRef($branch)) {
-                return true;
-            }
+        if ($this->registry->get($schema->ref->uri)->type !== SchemaType::Object) {
+            return [];
         }
 
-        if ($resolved->items !== null && $this->containsClassRef($resolved->items)) {
-            return true;
-        }
-
-        return false;
+        return [new Constraint(Valid::class, [])];
     }
 }

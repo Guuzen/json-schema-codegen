@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
 use DateTimeInterface;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ClassConstantRef;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\SchemaWalker;
 use Symfony\Component\Validator\Constraints\DateTime;
 
 final readonly class DateTimeConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
-        private SchemaResolver $resolver,
+        private SchemaWalker $schemaWalker,
         private string|ClassConstantRef $format = new ClassConstantRef(
             DateTimeInterface::class,
             'DateTimeInterface',
@@ -25,14 +24,26 @@ final readonly class DateTimeConstraintGenerator implements ConstraintGenerator
     ) {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
-        $resolved = $this->resolver->resolved($schema);
+        return [
+            ...$this->root($schema),
+            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->ref($schema, $this),
+        ];
+    }
 
-        if ($resolved->type !== SchemaType::String || $resolved->format !== 'date-time') {
-            return null;
+    /**
+     * @return list<Constraint>
+     */
+    private function root(Schema $schema): array
+    {
+        $constraints = [];
+
+        if ($schema->isString() && $schema->format === 'date-time') {
+            $constraints[] = new Constraint(DateTime::class, ['format' => $this->format]);
         }
 
-        return new Constraint(DateTime::class, ['format' => $this->format]);
+        return $constraints;
     }
 }

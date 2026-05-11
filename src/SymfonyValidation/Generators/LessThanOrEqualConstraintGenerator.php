@@ -4,28 +4,40 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\SchemaWalker;
 use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 
 final readonly class LessThanOrEqualConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
-        private SchemaResolver $resolver,
-    ) {
+        private SchemaWalker $schemaWalker,
+    )
+    {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
-        $resolved = $this->resolver->resolved($schema);
+        return [
+            ...$this->root($schema),
+            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->ref($schema, $this),
+        ];
+    }
 
-        if ($resolved->type !== SchemaType::Integer || $resolved->maximum === null) {
-            return null;
+    /**
+     * @return list<Constraint>
+     */
+    private function root(Schema $schema): array
+    {
+        $constraints = [];
+
+        if ($schema->maximum !== null && $schema->isInteger()) {
+            $constraints[] = new Constraint(LessThanOrEqual::class, [$schema->maximum]);
         }
 
-        return new Constraint(LessThanOrEqual::class, [$resolved->maximum]);
+        return $constraints;
     }
 }

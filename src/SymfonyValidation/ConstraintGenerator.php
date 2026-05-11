@@ -8,5 +8,8 @@ use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
 interface ConstraintGenerator
 {
-    public function generate(Schema $schema): ?Constraint;
+    /**
+     * @return list<Constraint>
+     */
+    public function generate(Schema $schema): array;
 }

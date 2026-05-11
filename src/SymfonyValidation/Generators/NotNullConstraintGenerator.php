@@ -4,45 +4,52 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
 use Symfony\Component\Validator\Constraints\NotNull;
 
+/**
+ * NotNull is disjunctive: emit unless any branch admits null. The walker's
+ * collect-and-concat model is conjunctive, so this generator keeps its own
+ * predicate traversal instead of going through SchemaWalker.
+ */
 final readonly class NotNullConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
-        private SchemaResolver $resolver,
+        private SchemaRegistry $registry,
     ) {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
         if ($this->isNullable($schema)) {
-            return null;
+            return [];
         }
 
-        return new Constraint(NotNull::class, []);
+        return [new Constraint(NotNull::class, [])];
     }
 
     private function isNullable(Schema $schema): bool
     {
-        $resolved = $this->resolver->resolved($schema);
-
-        if ($resolved->type === SchemaType::Null) {
+        if ($schema->type === SchemaType::Null) {
             return true;
         }
 
-        if (is_array($resolved->type) && in_array(SchemaType::Null, $resolved->type, true)) {
+        if (is_array($schema->type) && in_array(SchemaType::Null, $schema->type, true)) {
             return true;
         }
 
-        foreach ($resolved->oneOf ?? [] as $branch) {
+        foreach ($schema->oneOf ?? [] as $branch) {
             if ($this->isNullable($branch)) {
                 return true;
             }
+        }
+
+        if ($schema->ref !== null && $this->isNullable($this->registry->get($schema->ref->uri))) {
+            return true;
         }
 
         return false;

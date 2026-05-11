@@ -7,12 +7,11 @@ namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\TypeRenderer\DefaultTypeRenderer;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintList;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\SchemaWalker;
 use Symfony\Component\Validator\Constraints\All;
 
 final readonly class AllConstraintGenerator implements ConstraintGenerator
@@ -22,51 +21,62 @@ final readonly class AllConstraintGenerator implements ConstraintGenerator
      */
     public function __construct(
         private array $generators,
+        private SchemaWalker $schemaWalker,
     )
     {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
-        if ($schema->type !== SchemaType::Array) {
-            return null;
+        return [
+            ...$this->root($schema),
+            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->ref($schema, $this),
+        ];
+    }
+
+    /**
+     * @return list<Constraint>
+     */
+    private function root(Schema $schema): array
+    {
+        if (!$schema->isArray()) {
+            return [];
         }
 
         $itemSchema = $schema->items ?? new Schema();
         $itemConstraints = [];
 
         foreach ($this->generators as $factory) {
-            $constraint = $factory->generate($itemSchema);
-            if ($constraint !== null) {
-                $itemConstraints[] = $constraint;
-            }
+            $constraints = $factory->generate($itemSchema);
+            $itemConstraints = [...$itemConstraints, ...$constraints];
         }
 
         if ($itemConstraints === []) {
-            return null;
+            return [];
         }
 
-        return new Constraint(All::class, [new ConstraintList($itemConstraints)]);
+        return [new Constraint(All::class, [new ConstraintList($itemConstraints)])];
     }
 
     /**
      * @return list<ConstraintGenerator>
      */
     public static function defaultGenerators(
-        SchemaResolver $resolver,
         FqcnResolver   $fqcnResolver,
         SchemaRegistry $registry,
+        SchemaWalker   $schemaWalker,
     ): array {
         return [
             new TypeConstraintGenerator(new DefaultTypeRenderer($fqcnResolver, $registry)),
-            new NotNullConstraintGenerator($resolver),
-            new UuidConstraintGenerator($resolver),
-            new DateConstraintGenerator($resolver),
-            new DateTimeConstraintGenerator($resolver),
-            new RegexConstraintGenerator($resolver),
-            new GreaterThanOrEqualConstraintGenerator($resolver),
-            new LessThanOrEqualConstraintGenerator($resolver),
-            new ChoiceConstraintGenerator($resolver),
+            new NotNullConstraintGenerator($registry),
+            new UuidConstraintGenerator($schemaWalker),
+            new DateConstraintGenerator($schemaWalker),
+            new DateTimeConstraintGenerator($schemaWalker),
+            new RegexConstraintGenerator($schemaWalker),
+            new GreaterThanOrEqualConstraintGenerator($schemaWalker),
+            new LessThanOrEqualConstraintGenerator($schemaWalker),
+            new ChoiceConstraintGenerator($schemaWalker),
         ];
     }
 }

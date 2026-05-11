@@ -45,4 +45,56 @@ final readonly class Schema
     )
     {
     }
+
+    public function isInteger(): bool
+    {
+        if ($this->type === SchemaType::Integer) {
+            return true;
+        }
+
+        if (is_array($this->type) && in_array(SchemaType::Integer, $this->type, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isString(): bool
+    {
+        if ($this->type === SchemaType::String) {
+            return true;
+        }
+
+        if (is_array($this->type) && in_array(SchemaType::String, $this->type, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isArray(): bool
+    {
+        if ($this->type === SchemaType::Array) {
+            return true;
+        }
+
+        if (is_array($this->type) && in_array(SchemaType::Array, $this->type, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isObject(): bool
+    {
+        if ($this->type === SchemaType::Object) {
+            return true;
+        }
+
+        if (is_array($this->type) && in_array(SchemaType::Object, $this->type, true)) {
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -18,7 +18,7 @@ final readonly class TypeConstraintGenerator implements ConstraintGenerator
     ) {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
         $values = [];
 
@@ -36,13 +36,13 @@ final readonly class TypeConstraintGenerator implements ConstraintGenerator
         $count = count($values);
 
         if ($count === 1) {
-            return new Constraint(Type::class, [$values[0]]);
+            return [new Constraint(Type::class, [$values[0]])];
         }
 
         if ($count > 1) {
-            return new Constraint(Type::class, [$values]);
+            return [new Constraint(Type::class, [$values])];
         }
 
-        return null;
+        return [];
     }
 }

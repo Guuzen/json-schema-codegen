@@ -22,7 +22,6 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentG
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
 
@@ -43,7 +42,6 @@ final class NetteFilesGeneratorFactory
     {
         $schemaRegistry = new SchemaRegistry();
         $fqcnResolver   = self::createFqcnResolver($config);
-        $schemaResolver = new SchemaResolver($schemaRegistry);
 
         return new FilesGenerator(
             pathCollector: $pathCollector ?? PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
@@ -69,7 +67,6 @@ final class NetteFilesGeneratorFactory
                         ),
                         new SymfonyValidationModifier(
                             generators: SymfonyValidationModifier::defaultGenerators(
-                                $schemaResolver,
                                 $fqcnResolver,
                                 $schemaRegistry,
                             ),

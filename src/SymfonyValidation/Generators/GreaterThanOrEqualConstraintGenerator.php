@@ -4,71 +4,40 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\SymfonyValidation\Generators;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\Constraint;
 use Guuzen\JsonSchemaCodegen\SymfonyValidation\ConstraintGenerator;
+use Guuzen\JsonSchemaCodegen\SymfonyValidation\SchemaWalker;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 
 final readonly class GreaterThanOrEqualConstraintGenerator implements ConstraintGenerator
 {
     public function __construct(
-        private SchemaResolver $resolver,
-    ) {
+        private SchemaWalker $schemaWalker,
+    )
+    {
     }
 
-    public function generate(Schema $schema): ?Constraint
+    public function generate(Schema $schema): array
     {
-        $intSchema = $this->findInt($schema);
-        if ($intSchema === null || $intSchema->minimum === null) {
-            return null;
-        }
-
-        return new Constraint(GreaterThanOrEqual::class, [$intSchema->minimum]);
-    }
-
-    private function findInt(Schema $schema): ?Schema
-    {
-        $resolved = $this->resolver->resolved($schema);
-
-        if ($resolved->type === SchemaType::Integer) {
-            return $resolved;
-        }
-
-        if ($resolved->oneOf !== null) {
-            return $this->findOnlyInt($resolved->oneOf);
-        }
-
-        if (is_array($resolved->type)) {
-            return $this->findOnlyInt(array_map(
-                fn(SchemaType $t) => new Schema(type: $t),
-                $resolved->type,
-            ));
-        }
-
-        return null;
+        return [
+            ...$this->root($schema),
+            ...$this->schemaWalker->oneOf($schema, $this),
+            ...$this->schemaWalker->ref($schema, $this),
+        ];
     }
 
     /**
-     * @param list<Schema> $branches
+     * @return list<Constraint>
      */
-    private function findOnlyInt(array $branches): ?Schema
+    private function root(Schema $schema): array
     {
-        $found = null;
-        foreach ($branches as $branch) {
-            $branch = $this->resolver->resolved($branch);
-            if ($branch->type === SchemaType::Null) {
-                continue;
-            }
-            if ($branch->type !== SchemaType::Integer) {
-                return null;
-            }
-            if ($found !== null) {
-                return null;
-            }
-            $found = $branch;
+        $constraints = [];
+
+        if ($schema->minimum !== null && $schema->isInteger()) {
+            $constraints[] = new Constraint(GreaterThanOrEqual::class, [$schema->minimum]);
         }
-        return $found;
+
+        return $constraints;
     }
 }
