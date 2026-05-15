@@ -65,12 +65,6 @@ final class NetteFilesGeneratorFactory
                         new AnnotationModifier(
                             new DefaultAnnotationGenerator($fqcnResolver, $schemaRegistry),
                         ),
-                        new SymfonyValidationModifier(
-                            generators: SymfonyValidationModifier::defaultGenerators(
-                                $fqcnResolver,
-                                $schemaRegistry,
-                            ),
-                        ),
                         new OptionalModifier(
                             new DefaultDefaultGenerator($fqcnResolver)
                         ),

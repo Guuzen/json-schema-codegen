@@ -6,7 +6,6 @@ namespace App\Dto;
 
 use App\Dto\address\Address;
 use Guuzen\JsonSchemaCodegen\Undefined;
-use Symfony\Component\Validator\Constraints as Assert;
 
 final class Order
 {
@@ -14,67 +13,38 @@ final class Order
         /**
          * @var Customer
          */
-        #[Assert\Type(Customer::class)]
-        #[Assert\NotNull]
-        #[Assert\Valid]
         public $customer,
         /**
          * @var 'pending'|'processing'|'shipped'|'delivered'
          */
-        #[Assert\Type('string')]
-        #[Assert\NotNull]
-        #[Assert\Choice(choices: ['pending', 'processing', 'shipped', 'delivered'])]
         public $status,
         /**
          * @var int<1, 100>
          */
-        #[Assert\Type('integer')]
-        #[Assert\NotNull]
-        #[Assert\GreaterThanOrEqual(1)]
-        #[Assert\LessThanOrEqual(100)]
         public $quantity,
         /**
          * @var Address
          */
-        #[Assert\Type(Address::class)]
-        #[Assert\NotNull]
-        #[Assert\Valid]
         public $address,
         /**
          * @var list<OrderItem>
          */
-        #[Assert\Type('list')]
-        #[Assert\NotNull]
-        #[Assert\All([
-            new Assert\Type(OrderItem::class),
-            new Assert\NotNull(),
-        ])]
-        #[Assert\Valid]
         public $items,
         /**
          * @var CreditCardPayment|BankTransferPayment
          */
-        #[Assert\Type([CreditCardPayment::class, BankTransferPayment::class])]
-        #[Assert\NotNull]
-        #[Assert\Valid]
         public $payment,
         /**
          * @var int<0, max>|null
          */
-        #[Assert\Type('integer')]
-        #[Assert\GreaterThanOrEqual(0)]
         public $amount,
         /**
          * @var non-empty-string|Undefined
          */
-        #[Assert\Type(['string', Undefined::class])]
-        #[Assert\NotNull]
         public $couponCode = Undefined::Value,
         /**
          * @var Note|null|Undefined
          */
-        #[Assert\Type([Note::class, Undefined::class])]
-        #[Assert\Valid]
         public $note = Undefined::Value,
     ) {
     }

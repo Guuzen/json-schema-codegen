@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
-use Symfony\Component\Validator\Constraints as Assert;
-
 /**
  * A collection of tags
  */
@@ -17,13 +15,6 @@ final class Tags
          *
          * @var list<'featured'|'sale'|'new'|'trending'>
          */
-        #[Assert\Type('list')]
-        #[Assert\NotNull]
-        #[Assert\All([
-            new Assert\Type('string'),
-            new Assert\NotNull(),
-            new Assert\Choice(choices: ['featured', 'sale', 'new', 'trending']),
-        ])]
         public $tags,
         /**
          * List of tag enums or null
@@ -32,8 +23,6 @@ final class Tags
          *
          * @var 'featured'|'sale'|'new'|'trending'|null
          */
-        #[Assert\Type('string')]
-        #[Assert\Choice(choices: ['featured', 'sale', 'new', 'trending'])]
         public $tag,
     ) {
     }
