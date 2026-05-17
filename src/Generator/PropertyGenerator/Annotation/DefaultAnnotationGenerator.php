@@ -40,28 +40,28 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
         $allAnnotations[] = $this->renderEnum($schema);
         $allAnnotations[] = $this->renderTypes($schema);
 
-        if (array_all($allAnnotations, fn(ResolvedAnnotation $annotation) => $annotation->annotation === 'mixed')) {
+        if (array_all($allAnnotations, fn(ResolvedAnnotation $annotation) => $annotation->isMixed())) {
             return ResolvedAnnotation::mixed();
         }
 
         $hasMixed = array_any(
             $allAnnotations,
-            fn(ResolvedAnnotation $annotation) => $annotation->annotation === 'mixed',
+            fn(ResolvedAnnotation $annotation) => $annotation->isMixed(),
         );
         $hasNotMixed = array_any(
             $allAnnotations,
-            fn(ResolvedAnnotation $annotation) => $annotation->annotation !== 'mixed',
+            fn(ResolvedAnnotation $annotation) => $annotation->isNotMixed(),
         );
 
         if ($hasMixed && $hasNotMixed) {
             $allAnnotations = array_filter(
                 $allAnnotations,
-                fn(ResolvedAnnotation $annotation) => $annotation->annotation !== 'mixed',
+                fn(ResolvedAnnotation $annotation) => $annotation->isNotMixed(),
             );
         }
 
         if ($allAnnotations !== []) {
-            return array_shift($allAnnotations)->intersect($allAnnotations);
+            return ResolvedAnnotation::intersect($allAnnotations);
         }
 
         return ResolvedAnnotation::mixed();
@@ -82,7 +82,7 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
             return ResolvedAnnotation::mixed();
         }
 
-        return array_shift($annotations)->unite($annotations);
+        return ResolvedAnnotation::unite($annotations);
     }
 
     private function renderEnum(ResolvedSchema $schema): ResolvedAnnotation
@@ -126,7 +126,7 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
             return ResolvedAnnotation::mixed();
         }
 
-        return array_shift($annotations)->unite($annotations);
+        return ResolvedAnnotation::unite($annotations);
     }
 
     private function renderObject(?Ref $ref, ?string $xAlias): ResolvedAnnotation

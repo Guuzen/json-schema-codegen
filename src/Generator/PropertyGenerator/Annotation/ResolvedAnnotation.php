@@ -16,37 +16,51 @@ final readonly class ResolvedAnnotation
     }
 
     /**
-     * @param list<self> $annotations
+     * @param non-empty-array<self> $annotations
      */
-    public function intersect(array $annotations): self
+    public static function intersect(array $annotations): self
     {
+        $initial = array_shift($annotations);
+
         return array_reduce(
             $annotations,
             fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
                 annotation: $carry->annotation . '&' . $item->annotation,
                 imports: [...$carry->imports, ...$item->imports],
             ),
-            $this,
+            $initial,
         );
     }
 
     /**
-     * @param list<self> $annotations
+     * @param non-empty-array<self> $annotations
      */
-    public function unite(array $annotations): self
+    public static function unite(array $annotations): self
     {
+        $initial = array_shift($annotations);
+
         return array_reduce(
             $annotations,
             fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
                 annotation: $carry->annotation . '|' . $item->annotation,
                 imports: [...$carry->imports, ...$item->imports],
             ),
-            $this,
+            $initial,
         );
     }
 
     public static function mixed(): self
     {
         return new self(annotation: 'mixed', imports: []);
+    }
+
+    public function isMixed(): bool
+    {
+        return $this->annotation === 'mixed';
+    }
+
+    public function isNotMixed(): bool
+    {
+        return $this->annotation !== 'mixed';
     }
 }
