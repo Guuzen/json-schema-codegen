@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen;
 
 use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixDirectoryPath;
+use Guuzen\JsonSchemaCodegen\Path\RelativeUnixPath;
 
 final readonly class Config
 {
@@ -16,6 +17,7 @@ final readonly class Config
         public AbsoluteUnixDirectoryPath $schemaPath,
         public AbsoluteUnixDirectoryPath $outputPath,
         public string $schemaSuffix,
+        public RelativeUnixPath $undefinedPath,
     ) {
     }
 }

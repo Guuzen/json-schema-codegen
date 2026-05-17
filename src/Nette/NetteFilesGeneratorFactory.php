@@ -20,10 +20,12 @@ use Guuzen\JsonSchemaCodegen\Generator\PathTransformer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
+use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 
 final class NetteFilesGeneratorFactory
 {
@@ -32,6 +34,7 @@ final class NetteFilesGeneratorFactory
      */
     public static function create(
         Config $config,
+        AbsoluteUri $undefinedUri,
         ?FileLoader $fileLoader = null,
         ?SchemaDecoder $decoder = null,
         ?FileDumper $fileDumper = null,
@@ -63,10 +66,12 @@ final class NetteFilesGeneratorFactory
                     modifiers: [
                         new CommentModifier(new DefaultCommentGenerator()),
                         new AnnotationModifier(
-                            new DefaultAnnotationGenerator($fqcnResolver, $schemaRegistry),
+                            new DefaultAnnotationGenerator($fqcnResolver, new SchemaResolver($schemaRegistry)),
                         ),
                         new OptionalModifier(
-                            new DefaultDefaultGenerator($fqcnResolver)
+                            generator: new DefaultDefaultGenerator($fqcnResolver),
+                            fqcnResolver: $fqcnResolver,
+                            undefinedUri: $undefinedUri,
                         ),
                     ],
                 ),

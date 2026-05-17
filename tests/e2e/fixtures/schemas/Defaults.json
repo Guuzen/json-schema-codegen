@@ -8,7 +8,7 @@
         "count":     {"type": "integer",           "default": 0},
         "enabled":   {"type": "boolean",           "default": true},
         "nickname":  {"type": ["string", "null"],  "default": "anon"},
-        "comment":     {"type": ["string", "null"]},
+        "comment":   {"anyOf": [{"type": ["string", "null"]}, {"$ref": "Undefined.json"}]},
         "note":        {"$ref": "Note.json", "default": null},
         "pinnedNote": {"$ref": "Note.json", "default": {"content": "pinned"}}
     }

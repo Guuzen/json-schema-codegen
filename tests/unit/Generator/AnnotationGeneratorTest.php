@@ -5,25 +5,25 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\ResolvedAnnotation;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
-use Guuzen\JsonSchemaCodegen\Undefined;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AnnotationGeneratorTest extends TestCase
 {
-    private static function make(SchemaRegistry $registry = new SchemaRegistry([])): DefaultAnnotationGenerator
+    private static function make(SchemaRegistry $registry = new SchemaRegistry([])): AnnotationGenerator
     {
         return new DefaultAnnotationGenerator(
             new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
-            $registry,
+            new SchemaResolver($registry),
         );
     }
 
@@ -117,6 +117,16 @@ final class AnnotationGeneratorTest extends TestCase
             new ResolvedAnnotation('non-empty-list<string>', []),
             $emptyRegistry,
         ];
+        yield 'list of refs' => [
+            new Schema(
+                type: SchemaType::Array,
+                items: new Schema(
+                    ref: new Ref(new AbsoluteUri('file:///schemas/Address.json'))
+                ),
+            ),
+            new ResolvedAnnotation('list<Address>', [['alias' => 'Address', 'fqcn' => 'App\\Dto\\Address']]),
+            new SchemaRegistry(schemas: ['file:///schemas/Address.json' => new Schema(type: SchemaType::Object)]),
+        ];
 
         // Enums
         yield 'enum of strings' => [
@@ -144,6 +154,11 @@ final class AnnotationGeneratorTest extends TestCase
             new ResolvedAnnotation('1|2|3', []),
             $emptyRegistry,
         ];
+        yield 'enum empty' => [
+            new Schema(enum: []),
+            new ResolvedAnnotation('mixed', []),
+            $emptyRegistry,
+        ];
 
         // Unions
         yield 'anyOf string and null' => [
@@ -154,12 +169,12 @@ final class AnnotationGeneratorTest extends TestCase
             new ResolvedAnnotation('string|null', []),
             $emptyRegistry,
         ];
-        yield 'anyOf null and string (null hoisted)' => [
+        yield 'anyOf null and string (null is not hoisted)' => [
             new Schema(anyOf: [
                 new Schema(type: SchemaType::Null),
                 new Schema(type: SchemaType::String),
             ]),
-            new ResolvedAnnotation('string|null', []),
+            new ResolvedAnnotation('null|string', []),
             $emptyRegistry,
         ];
         yield 'anyOf string int' => [
@@ -243,26 +258,6 @@ final class AnnotationGeneratorTest extends TestCase
                 'file:///schemas/Cat.json' => new Schema(type: SchemaType::Object),
                 'file:///schemas/Dog.json' => new Schema(type: SchemaType::Object),
             ]),
-        ];
-
-        // Optional / Undefined
-        yield 'optional string adds Undefined' => [
-            new Schema(type: SchemaType::String, required: false),
-            new ResolvedAnnotation(
-                'string|Undefined',
-                [['alias' => 'Undefined', 'fqcn' => Undefined::class]],
-            ),
-            $emptyRegistry,
-        ];
-        yield 'optional mixed does not add Undefined' => [
-            new Schema(required: false),
-            new ResolvedAnnotation('mixed', []),
-            $emptyRegistry,
-        ];
-        yield 'optional with default does not add Undefined' => [
-            new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo')),
-            new ResolvedAnnotation('string', []),
-            $emptyRegistry,
         ];
     }
 

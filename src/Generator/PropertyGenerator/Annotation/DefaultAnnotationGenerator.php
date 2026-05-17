@@ -5,143 +5,170 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Generator\ResolvedSchema;
+use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
-use Guuzen\JsonSchemaCodegen\Undefined;
 
 final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
 {
     public function __construct(
-        private FqcnResolver   $fqcnResolver,
-        private SchemaRegistry $registry,
-    ) {
+        private FqcnResolver $fqcnResolver,
+        private SchemaResolver $schemaBuilder,
+    )
+    {
     }
 
     public function generate(Schema $schema): ResolvedAnnotation
     {
-        $rendered = $this->renderRequired($schema);
+        $resolvedSchema = $this->schemaBuilder->build($schema);
 
-        if ($schema->required || $schema->default !== null || $this->isMixed($schema)) {
-            return $rendered;
+        return $this->render($resolvedSchema);
+    }
+
+    private function render(?ResolvedSchema $schema): ResolvedAnnotation
+    {
+        if ($schema === null) {
+            return ResolvedAnnotation::mixed();
         }
 
-        return new ResolvedAnnotation(
-            $rendered->annotation . '|Undefined',
-            [...$rendered->imports, ['alias' => 'Undefined', 'fqcn' => Undefined::class]],
+        $allAnnotations = [];
+
+        $allAnnotations[] = $this->render($schema->ref);
+        $allAnnotations[] = $this->renderAnyOf($schema);
+        $allAnnotations[] = $this->renderEnum($schema);
+        $allAnnotations[] = $this->renderTypes($schema);
+
+        if (array_all($allAnnotations, fn(ResolvedAnnotation $annotation) => $annotation->annotation === 'mixed')) {
+            return ResolvedAnnotation::mixed();
+        }
+
+        $hasMixed = array_any(
+            $allAnnotations,
+            fn(ResolvedAnnotation $annotation) => $annotation->annotation === 'mixed',
         );
+        $hasNotMixed = array_any(
+            $allAnnotations,
+            fn(ResolvedAnnotation $annotation) => $annotation->annotation !== 'mixed',
+        );
+
+        if ($hasMixed && $hasNotMixed) {
+            $allAnnotations = array_filter(
+                $allAnnotations,
+                fn(ResolvedAnnotation $annotation) => $annotation->annotation !== 'mixed',
+            );
+        }
+
+        if ($allAnnotations !== []) {
+            return array_shift($allAnnotations)->intersect($allAnnotations);
+        }
+
+        return ResolvedAnnotation::mixed();
     }
 
-    private function renderRequired(Schema $schema): ResolvedAnnotation
+    private function renderAnyOf(ResolvedSchema $schema): ResolvedAnnotation
     {
-        if ($schema->ref !== null) {
-            $referenced = $this->registry->get($schema->ref->uri);
-
-            if ($referenced->type === SchemaType::Object) {
-                $fqcn  = $this->fqcnResolver->fromUri($schema->ref->uri);
-                $alias = $schema->xAlias ?? $fqcn->className();
-                return new ResolvedAnnotation($alias, [['alias' => $alias, 'fqcn' => $fqcn->fqcn]]);
-            }
-
-            return $this->renderRequired($referenced);
-        }
-
-        if ($schema->anyOf !== null) {
-            return $this->renderBranches($schema->anyOf);
-        }
-
-        if (is_array($schema->type)) {
-            return $this->renderBranches(array_map(
-                fn(SchemaType $t) => new Schema(type: $t),
-                $schema->type,
-            ));
-        }
-
-        if ($schema->enum !== null) {
-            return new ResolvedAnnotation($this->renderEnum($schema->enum), []);
-        }
-
-        return match ($schema->type) {
-            SchemaType::String  => new ResolvedAnnotation(
-                $schema->minLength !== null && $schema->minLength >= 1 ? 'non-empty-string' : 'string',
-                [],
-            ),
-            SchemaType::Integer => new ResolvedAnnotation($this->renderInt($schema), []),
-            SchemaType::Number  => new ResolvedAnnotation('float', []),
-            SchemaType::Boolean => new ResolvedAnnotation('bool', []),
-            SchemaType::Null    => new ResolvedAnnotation('null', []),
-            SchemaType::Object  => new ResolvedAnnotation('object', []),
-            SchemaType::Array   => $this->renderList($schema),
-            default             => new ResolvedAnnotation('mixed', []),
-        };
-    }
-
-    /**
-     * @param list<Schema> $branches
-     */
-    private function renderBranches(array $branches): ResolvedAnnotation
-    {
-        $nonNull = [];
-        $hasNull = false;
-        foreach ($branches as $branch) {
-            if ($branch->type === SchemaType::Null) {
-                $hasNull = true;
-                continue;
-            }
-            $nonNull[] = $branch;
+        if ($schema->anyOf === null) {
+            return ResolvedAnnotation::mixed();
         }
 
         $annotations = [];
-        $imports = [];
-        foreach ($nonNull as $branch) {
-            $rendered = $this->renderRequired($branch);
-            $annotations[] = $rendered->annotation;
-            $imports = [...$imports, ...$rendered->imports];
-        }
-        if ($hasNull) {
-            $annotations[] = 'null';
+        foreach ($schema->anyOf as $anyOfSchema) {
+            $annotations[] = $this->render($anyOfSchema);
         }
 
-        return new ResolvedAnnotation(implode('|', $annotations), $imports);
-    }
-
-    private function renderInt(Schema $schema): string
-    {
-        if ($schema->minimum === null && $schema->maximum === null) {
-            return 'int';
+        if ($annotations === []) {
+            return ResolvedAnnotation::mixed();
         }
 
-        $min = $schema->minimum !== null ? (string)$schema->minimum : 'min';
-        $max = $schema->maximum !== null ? (string)$schema->maximum : 'max';
-
-        return "int<{$min}, {$max}>";
+        return array_shift($annotations)->unite($annotations);
     }
 
-    private function renderList(Schema $schema): ResolvedAnnotation
+    private function renderEnum(ResolvedSchema $schema): ResolvedAnnotation
     {
-        $itemSchema = $schema->items ?? new Schema();
-        $rendered = $this->renderRequired($itemSchema);
-        $prefix = $schema->minItems !== null && $schema->minItems >= 1 ? 'non-empty-list' : 'list';
+        if ($schema->schema->enum === [] || $schema->schema->enum === null) {
+            return ResolvedAnnotation::mixed();
+        }
 
-        return new ResolvedAnnotation("{$prefix}<{$rendered->annotation}>", $rendered->imports);
+        $annotation = implode(
+            '|', array_map(
+                fn(string|int $v) => is_string($v) ? "'{$v}'" : (string)$v,
+                $schema->schema->enum,
+            )
+        );
+
+        return new ResolvedAnnotation($annotation, []);
     }
 
-    /**
-     * @param list<string|int> $values
-     */
-    private function renderEnum(array $values): string
+    private function renderTypes(ResolvedSchema $schema): ResolvedAnnotation
     {
-        return implode('|', array_map(
-            fn(string|int $v) => is_string($v) ? "'{$v}'" : (string)$v,
-            $values,
-        ));
+        $annotations = [];
+
+        $types = is_array($schema->schema->type) ? $schema->schema->type : [$schema->schema->type];
+
+        foreach ($types as $type) {
+            $typeAnnotation = match ($type) {
+                SchemaType::Integer => $this->renderInt($schema->schema->minimum, $schema->schema->maximum),
+                SchemaType::String => $this->renderString($schema),
+                SchemaType::Number => new ResolvedAnnotation('float', []),
+                SchemaType::Boolean => new ResolvedAnnotation('bool', []),
+                SchemaType::Object => $this->renderObject($schema->parent?->ref, $schema->parent?->xAlias),
+                SchemaType::Null => new ResolvedAnnotation('null', []),
+                SchemaType::Array => $this->renderList($schema->items, $schema->schema->minItems),
+                default => new ResolvedAnnotation('mixed', []),
+            };
+
+            $annotations[] = $typeAnnotation;
+        }
+
+        if ($annotations === []) {
+            return ResolvedAnnotation::mixed();
+        }
+
+        return array_shift($annotations)->unite($annotations);
     }
 
-    private function isMixed(Schema $schema): bool
+    private function renderObject(?Ref $ref, ?string $xAlias): ResolvedAnnotation
     {
-        return $schema->type === null
-            && $schema->anyOf === null
-            && $schema->ref === null
-            && $schema->enum === null;
+        if ($ref?->uri === null) {
+            return new ResolvedAnnotation('object', []);
+        }
+
+        $fqcn = $this->fqcnResolver->fromUri($ref->uri);
+        $alias = $xAlias ?? $fqcn->className();
+
+        return new ResolvedAnnotation($alias, [['alias' => $alias, 'fqcn' => $fqcn->fqcn]]);
+    }
+
+    private function renderInt(?int $minimum, ?int $maximum): ResolvedAnnotation
+    {
+        if ($minimum === null && $maximum === null) {
+            return new ResolvedAnnotation('int', []);
+        }
+
+        $min = $minimum !== null ? (string)$minimum : 'min';
+        $max = $maximum !== null ? (string)$maximum : 'max';
+
+        return new ResolvedAnnotation("int<{$min}, {$max}>", []);
+    }
+
+    private function renderString(ResolvedSchema $schema): ResolvedAnnotation
+    {
+        if ($schema->schema->minLength !== null && $schema->schema->minLength >= 1) {
+            $annoatation = 'non-empty-string';
+        } else {
+            $annoatation = 'string';
+        }
+
+        return new ResolvedAnnotation($annoatation, []);
+    }
+
+    private function renderList(?ResolvedSchema $items, ?int $minItems): ResolvedAnnotation
+    {
+        $itemAnnotation = $this->render($items);
+        $prefix = $minItems !== null && $minItems >= 1 ? 'non-empty-list' : 'list';
+
+        return new ResolvedAnnotation("{$prefix}<{$itemAnnotation->annotation}>", $itemAnnotation->imports);
     }
 }

@@ -4,35 +4,44 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator;
 
-use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
-/**
- * Follows non-object $refs so constraint generators can match on the
- * underlying schema (e.g. "string with format: uuid") without each
- * generator re-implementing ref traversal.
- *
- * Object refs are NOT followed — they represent a class boundary the
- * generator should treat as an opaque ClassRef.
- */
 final readonly class SchemaResolver
 {
     public function __construct(
         private SchemaRegistry $registry,
-    ) {
+    )
+    {
     }
 
-    public function resolved(Schema $schema): Schema
+    public function build(Schema $schema, ?Schema $parent = null): ResolvedSchema
     {
-        if ($schema->ref === null) {
-            return $schema;
+        $ref = null;
+        if ($schema->ref !== null) {
+            $ref = $this->build(
+                $this->registry->get($schema->ref->uri),
+                $schema,
+            );
         }
 
-        $referenced = $this->registry->get($schema->ref->uri);
-        if ($referenced->type === SchemaType::Object) {
-            return $schema;
+        $items = null;
+        if ($schema->items !== null) {
+            $items = $this->build($schema->items);
         }
 
-        return $this->resolved($referenced);
+        $anyOf = null;
+        if ($schema->anyOf !== null) {
+            foreach ($schema->anyOf as $branch) {
+                $anyOf[] = $this->build($branch);
+            }
+        }
+
+        return new ResolvedSchema(
+            schema: $schema,
+            parent: $parent,
+            ref: $ref,
+            items: $items,
+            anyOf: $anyOf,
+        );
     }
 }

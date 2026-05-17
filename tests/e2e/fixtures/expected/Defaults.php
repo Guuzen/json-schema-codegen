@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
-use Guuzen\JsonSchemaCodegen\Undefined;
-
 /**
  * A DTO with explicit default values
  */
@@ -35,7 +33,7 @@ final class Defaults
         /**
          * @var string|null|Undefined
          */
-        public $comment = Undefined::Value,
+        public $comment = new Undefined(),
         /**
          * @var Note
          */

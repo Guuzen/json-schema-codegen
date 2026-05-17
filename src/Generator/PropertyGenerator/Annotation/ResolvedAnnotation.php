@@ -14,4 +14,39 @@ final readonly class ResolvedAnnotation
         public array $imports,
     ) {
     }
+
+    /**
+     * @param list<self> $annotations
+     */
+    public function intersect(array $annotations): self
+    {
+        return array_reduce(
+            $annotations,
+            fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
+                annotation: $carry->annotation . '&' . $item->annotation,
+                imports: [...$carry->imports, ...$item->imports],
+            ),
+            $this,
+        );
+    }
+
+    /**
+     * @param list<self> $annotations
+     */
+    public function unite(array $annotations): self
+    {
+        return array_reduce(
+            $annotations,
+            fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
+                annotation: $carry->annotation . '|' . $item->annotation,
+                imports: [...$carry->imports, ...$item->imports],
+            ),
+            $this,
+        );
+    }
+
+    public static function mixed(): self
+    {
+        return new self(annotation: 'mixed', imports: []);
+    }
 }

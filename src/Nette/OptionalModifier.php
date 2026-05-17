@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\NewObjectDefaultValue;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
-use Guuzen\JsonSchemaCodegen\Undefined;
+use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use Nette\PhpGenerator\Literal;
 
 /**
@@ -17,6 +18,8 @@ final readonly class OptionalModifier implements PropertyModifier
 {
     public function __construct(
         private DefaultGenerator $generator,
+        private FqcnResolver $fqcnResolver,
+        private AbsoluteUri $undefinedUri,
     ) {
     }
 
@@ -37,7 +40,17 @@ final readonly class OptionalModifier implements PropertyModifier
             return;
         }
 
-        $context->namespace->addUse(Undefined::class);
-        $context->parameter->setDefaultValue(new Literal('Undefined::Value'));
+        if ($context->propertySchema->anyOf !== null) {
+            foreach ($context->propertySchema->anyOf as $branch) {
+                if ($branch->ref === null) {
+                    continue;
+                }
+                if ($branch->ref->uri->value === $this->undefinedUri->value) {
+                    $fqcn = $this->fqcnResolver->fromUri($this->undefinedUri);
+                    $context->namespace->addUse($fqcn->fqcn);
+                    $context->parameter->setDefaultValue(Literal::new($fqcn->className()));
+                }
+            }
+        }
     }
 }

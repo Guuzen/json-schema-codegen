@@ -4,10 +4,10 @@
     "properties": {
         "customer": {"$ref": "Customer.json"},
         "status":   {"$ref": "OrderStatus.json"},
-        "couponCode": {"$ref": "CouponCode.json"},
+        "couponCode": {"anyOf": [{"$ref": "CouponCode.json"}, {"$ref": "Undefined.json"}]},
         "quantity": {"$ref": "Quantity.json"},
         "address":  {"$ref": "address/Address.json"},
-        "note":     {"anyOf": [{"$ref": "Note.json"}, {"type": "null"}]},
+        "note":     {"anyOf": [{"$ref": "Note.json"}, {"type": "null"}, {"$ref": "Undefined.json"}]},
         "items":    {"type": "array", "items": {"$ref": "OrderItem.json"}},
         "payment":  {"anyOf": [{"$ref": "CreditCardPayment.json"}, {"$ref": "BankTransferPayment.json"}]},
         "amount":   {"anyOf": [{"$ref": "Cent.json"}, {"type": "null"}]}

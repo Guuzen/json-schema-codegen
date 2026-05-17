@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Tests\E2e;
 
 use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
+use Guuzen\JsonSchemaCodegen\Path\RelativeUnixPath;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use PHPUnit\Framework\TestCase;
 
@@ -59,6 +60,7 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'UserList.php' => self::SCHEMAS . 'UserList.php',
         // Tags: Assert\All validation for array items with enum choices
         self::EXPECTED . 'Tags.php' => self::SCHEMAS . 'Tags.php',
+        self::EXPECTED . 'Undefined.php' => self::SCHEMAS . 'Undefined.php',
         // Subdirectory schemas: namespace derived from path relative to baseUri
         self::EXPECTED . 'address/Address.php' => self::SCHEMAS . 'address/Address.php',
         self::EXPECTED . 'billing/Address.php' => self::SCHEMAS . 'billing/Address.php',
@@ -73,7 +75,11 @@ final class NetteFilesGeneratorTest extends TestCase
     {
         /** @var Config $config */
         $config = require self::CONFIG_FILE;
-        NetteFilesGeneratorFactory::create(config: $config, decoder: new JsonDecoder())->run();
+        NetteFilesGeneratorFactory::create(
+            config: $config,
+            undefinedUri: $config->schemaPath->resolve($config->undefinedPath)->toUri(),
+            decoder: new JsonDecoder(),
+        )->run();
 
         foreach (self::FILES as $expectedPath => $actualPath) {
             self::assertFileExists($actualPath, sprintf('Expected output file "%s" was not generated', $actualPath));

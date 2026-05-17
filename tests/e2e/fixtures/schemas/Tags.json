@@ -13,11 +13,11 @@
         },
         "tag": {
             "anyOf": [
-                { "type": "null" },
                 {
                     "enum": ["featured", "sale", "new", "trending"],
                     "description": "Tag"
-                }
+                },
+                { "type": "null" }
             ],
             "description": "List of tag enums or null"
         }
