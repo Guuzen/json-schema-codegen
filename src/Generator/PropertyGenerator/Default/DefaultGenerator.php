@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
 interface DefaultGenerator
 {
-    public function generate(SchemaTree $tree): ?DefaultValue;
+    public function generate(Schema $schema): ?DefaultValue;
 }

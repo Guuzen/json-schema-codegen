@@ -20,9 +20,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PathTransformer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaTreeBuilder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
@@ -43,8 +41,20 @@ final class NetteFilesGeneratorFactory
         ?array $generators = null,
     ): FilesGenerator
     {
-        $schemaRegistry = new SchemaRegistry();
-        $fqcnResolver   = self::createFqcnResolver($config);
+        $fqcnResolver = self::createFqcnResolver($config);
+        $printer = new NettePrinter();
+        $createPhpFile = new CreatePhpFile($fqcnResolver);
+        $promotedParameter = new PromotedParameter([
+            new CommentModifier(new DefaultCommentGenerator()),
+            new AnnotationModifier(
+                new DefaultAnnotationGenerator($fqcnResolver),
+            ),
+            new OptionalModifier(
+                generator: new DefaultDefaultGenerator($fqcnResolver),
+                fqcnResolver: $fqcnResolver,
+                undefinedUri: $undefinedUri,
+            ),
+        ]);
 
         return new FilesGenerator(
             pathCollector: $pathCollector ?? PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
@@ -57,24 +67,17 @@ final class NetteFilesGeneratorFactory
             fileDumper: $fileDumper ?? new PutContents(),
             schemaParser: new SchemaParser(),
             schemaFileDecoder: $decoder ?? new JsonDecoder(),
-            registry: $schemaRegistry,
-            treeBuilder: new SchemaTreeBuilder($schemaRegistry),
             generators: $generators ?? [
                 new ClassGenerator(
-                    printer: new NettePrinter(),
-                    createPhpFile: new CreatePhpFile($fqcnResolver),
+                    printer: $printer,
+                    createPhpFile: $createPhpFile,
                     constructorParameterOrder: new ConstructorParameterOrder(),
-                    modifiers: [
-                        new CommentModifier(new DefaultCommentGenerator()),
-                        new AnnotationModifier(
-                            new DefaultAnnotationGenerator($fqcnResolver),
-                        ),
-                        new OptionalModifier(
-                            generator: new DefaultDefaultGenerator($fqcnResolver),
-                            fqcnResolver: $fqcnResolver,
-                            undefinedUri: $undefinedUri,
-                        ),
-                    ],
+                    promotedParameter: $promotedParameter,
+                ),
+                new ValueClassGenerator(
+                    printer: $printer,
+                    createPhpFile: $createPhpFile,
+                    promotedParameter: $promotedParameter,
                 ),
             ],
         );

@@ -9,8 +9,6 @@ use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultValue as PropertyDefaultValue;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\NewObjectDefaultValue;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaTreeBuilder;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\DefaultValue;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
@@ -81,11 +79,6 @@ final class DefaultGeneratorTest extends TestCase
     #[DataProvider('provideDefaults')]
     public function testDefault(Schema $schema, ?PropertyDefaultValue $expected): void
     {
-        $registry = new SchemaRegistry([
-            'file:///schemas/Address.json' => new Schema(type: SchemaType::Object),
-        ]);
-        $tree = new SchemaTreeBuilder($registry)->build($schema);
-
-        self::assertEquals($expected, self::makeDefaultGenerator()->generate($tree));
+        self::assertEquals($expected, self::makeDefaultGenerator()->generate($schema));
     }
 }

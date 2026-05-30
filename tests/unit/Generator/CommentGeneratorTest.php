@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaTreeBuilder;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -61,8 +59,6 @@ final class CommentGeneratorTest extends TestCase
     #[DataProvider('provideComments')]
     public function testCommentGeneration(Schema $schema, ?string $expected): void
     {
-        $tree = new SchemaTreeBuilder(new SchemaRegistry([]))->build($schema);
-
-        self::assertSame($expected, new DefaultCommentGenerator()->generate($tree));
+        self::assertSame($expected, new DefaultCommentGenerator()->generate($schema));
     }
 }

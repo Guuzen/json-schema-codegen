@@ -14,11 +14,11 @@ final class Order
          */
         public $customer,
         /**
-         * @var 'pending'|'processing'|'shipped'|'delivered'
+         * @var OrderStatus
          */
         public $status,
         /**
-         * @var int<1, 100>
+         * @var Quantity
          */
         public $quantity,
         /**
@@ -34,11 +34,11 @@ final class Order
          */
         public $payment,
         /**
-         * @var int<0, max>|null
+         * @var Cent|null
          */
         public $amount,
         /**
-         * @var non-empty-string|Undefined
+         * @var CouponCode|Undefined
          */
         public $couponCode = new Undefined(),
         /**

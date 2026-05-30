@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
 final class DefaultCommentGenerator implements CommentGenerator
 {
-    public function generate(SchemaTree $tree): ?string
+    public function generate(Schema $schema): ?string
     {
-        $description = $tree->schema->description;
+        $description = $schema->description;
 
         $anyOfDescriptions = [];
-        foreach ($tree->anyOf ?? [] as $branch) {
-            if ($branch->schema->description !== null) {
-                $anyOfDescriptions[] = $branch->schema->description;
+        foreach ($schema->anyOf ?? [] as $branch) {
+            if ($branch->description !== null) {
+                $anyOfDescriptions[] = $branch->description;
             }
         }
 

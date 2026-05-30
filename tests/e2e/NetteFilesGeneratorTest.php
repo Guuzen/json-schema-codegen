@@ -43,8 +43,13 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'Product.php' => self::SCHEMAS . 'Product.php',
         // Customer: $ref with title aliases, same class name from different namespaces
         self::EXPECTED . 'Customer.php' => self::SCHEMAS . 'Customer.php',
-        // Order: $ref same/cross namespace, inline scalar refs, nullable $ref, list<$ref>, anyOf two refs
+        // Order: $ref same/cross namespace, scalar/enum refs as classes, nullable $ref, list<$ref>, anyOf two refs
         self::EXPECTED . 'Order.php' => self::SCHEMAS . 'Order.php',
+        // Scalar/enum helper schemas, each generated as a single-value object
+        self::EXPECTED . 'Quantity.php' => self::SCHEMAS . 'Quantity.php',
+        self::EXPECTED . 'OrderStatus.php' => self::SCHEMAS . 'OrderStatus.php',
+        self::EXPECTED . 'Cent.php' => self::SCHEMAS . 'Cent.php',
+        self::EXPECTED . 'CouponCode.php' => self::SCHEMAS . 'CouponCode.php',
         // Simple helper schemas referenced by Order and Customer
         self::EXPECTED . 'Note.php' => self::SCHEMAS . 'Note.php',
         self::EXPECTED . 'OrderItem.php' => self::SCHEMAS . 'OrderItem.php',

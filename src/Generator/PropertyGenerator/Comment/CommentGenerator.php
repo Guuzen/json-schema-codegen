@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment;
 
-use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
 interface CommentGenerator
 {
-    public function generate(SchemaTree $tree): ?string;
+    public function generate(Schema $schema): ?string;
 }

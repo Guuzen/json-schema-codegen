@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator;
 
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 
@@ -19,8 +20,6 @@ final readonly class FilesGenerator
         private FileDumper $fileDumper,
         private SchemaParser $schemaParser,
         private SchemaDecoder $schemaFileDecoder,
-        private SchemaRegistry $registry,
-        private SchemaTreeBuilder $treeBuilder,
         private iterable $generators,
     )
     {
@@ -28,19 +27,13 @@ final readonly class FilesGenerator
 
     public function run(): void
     {
-        $items = [];
         foreach ($this->pathCollector->collect() as $path) {
             $uri = $path->toUri();
             $schema = $this->schemaParser->parse(
                 $this->schemaFileDecoder->decode($this->fileLoader->load($path)),
                 $uri,
             );
-            $this->registry->add($uri, $schema);
-            $items[] = [$path, $uri, $schema];
-        }
-
-        foreach ($items as [$path, $uri, $schema]) {
-            $phpCode = $this->generate($this->treeBuilder->build($schema), $uri);
+            $phpCode = $this->generate($schema, $uri);
             if ($phpCode === null) {
                 continue;
             }
@@ -48,10 +41,10 @@ final readonly class FilesGenerator
         }
     }
 
-    private function generate(SchemaTree $tree, AbsoluteUri $schemaUri): ?string
+    private function generate(Schema $schema, AbsoluteUri $schemaUri): ?string
     {
         foreach ($this->generators as $step) {
-            $file = $step->generate($schemaUri, $tree);
+            $file = $step->generate($schemaUri, $schema);
             if ($file) {
                 return $file;
             }
