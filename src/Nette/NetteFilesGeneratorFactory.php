@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Filesystem\GetContents;
 use Guuzen\JsonSchemaCodegen\Filesystem\OutputPathTransformer;
 use Guuzen\JsonSchemaCodegen\Filesystem\PathsWithSuffix;
@@ -22,27 +21,73 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentG
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\TypeMappings;
+use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixDirectoryPath;
+use Guuzen\JsonSchemaCodegen\Path\RelativeUnixPath;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
+use Guuzen\JsonSchemaCodegen\Schema\YamlDecoder;
+use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 
 final class NetteFilesGeneratorFactory
 {
     /**
-     * @param list<FileGenerator> $generators
+     * @param non-empty-string $schemaSuffix
+     * @param array<string, class-string> $typeMappings
      */
     public static function create(
-        Config $config,
+        string $baseNamespace,
+        string $schemaPath,
+        string $outputPath,
+        string $schemaSuffix,
+        string $undefinedPath,
+        array $typeMappings = [],
+    ): FilesGenerator
+    {
+        $suffixExtension = pathinfo($schemaSuffix, PATHINFO_EXTENSION);
+
+        $decoder = match ($suffixExtension) {
+            'json' => new JsonDecoder(),
+            'yaml' => new YamlDecoder(),
+            default => throw new \InvalidArgumentException(
+                'By default only json and yaml files are supported.'
+            )
+        };
+
+        $dirSchemaPath = new AbsoluteUnixDirectoryPath($schemaPath);
+
+        return self::assemble(
+            fqcnResolver: new FqcnResolver(
+                $dirSchemaPath->toUri(),
+                $baseNamespace,
+                $schemaSuffix,
+            ),
+            typeMappings: TypeMappings::create($dirSchemaPath, $typeMappings),
+            undefinedUri: $dirSchemaPath->resolve(new RelativeUnixPath($undefinedPath))->toUri(),
+            pathCollector: PathsWithSuffix::create($dirSchemaPath, $schemaSuffix),
+            pathTransformer: new OutputPathTransformer(
+                $dirSchemaPath,
+                new AbsoluteUnixDirectoryPath($outputPath),
+                $schemaSuffix,
+            ),
+            decoder: $decoder,
+        );
+    }
+
+    /**
+     * @param list<FileGenerator> $generators
+     */
+    public static function assemble(
+        FqcnResolver $fqcnResolver,
+        TypeMappings $typeMappings,
+        AbsoluteUri $undefinedUri,
+        PathCollector $pathCollector,
+        PathTransformer $pathTransformer,
         ?FileLoader $fileLoader = null,
         ?SchemaDecoder $decoder = null,
         ?FileDumper $fileDumper = null,
-        ?PathCollector $pathCollector = null,
-        ?PathTransformer $pathTransformer = null,
         ?array $generators = null,
     ): FilesGenerator
     {
-        $fqcnResolver = self::createFqcnResolver($config);
-        $typeMappings = TypeMappings::create($config->schemaPath, $config->typeMappings);
-        $undefinedUri = $config->schemaPath->resolve($config->undefinedPath)->toUri();
         $printer = new NettePrinter();
         $createPhpFile = new CreatePhpFile($fqcnResolver);
         $promotedParameter = new PromotedParameter([
@@ -58,13 +103,9 @@ final class NetteFilesGeneratorFactory
         ]);
 
         return new FilesGenerator(
-            pathCollector: $pathCollector ?? PathsWithSuffix::create($config->schemaPath, $config->schemaSuffix),
+            pathCollector: $pathCollector,
             fileLoader: $fileLoader ?? new GetContents(),
-            pathTransformer: $pathTransformer ?? new OutputPathTransformer(
-                $config->schemaPath,
-                $config->outputPath,
-                $config->schemaSuffix
-            ),
+            pathTransformer: $pathTransformer,
             fileDumper: $fileDumper ?? new PutContents(),
             schemaParser: new SchemaParser(),
             schemaFileDecoder: $decoder ?? new JsonDecoder(),
@@ -84,14 +125,4 @@ final class NetteFilesGeneratorFactory
             ],
         );
     }
-
-    private static function createFqcnResolver(Config $config): FqcnResolver
-    {
-        return new FqcnResolver(
-            $config->schemaPath->toUri(),
-            $config->baseNamespace,
-            $config->schemaSuffix,
-        );
-    }
-
 }

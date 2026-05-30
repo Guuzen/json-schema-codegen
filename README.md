@@ -40,18 +40,15 @@ Create a PHP script that configures and runs the generator:
 
 require 'vendor/autoload.php';
 
-use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
-use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixDirectoryPath;
 
-$config = new Config(
+NetteFilesGeneratorFactory::create(
     baseNamespace: 'App\Dto',
-    schemaPath: new AbsoluteUnixDirectoryPath('/path/to/schemas'),
-    outputPath: new AbsoluteUnixDirectoryPath('/path/to/output'),
+    schemaPath: '/path/to/schemas',
+    outputPath: '/path/to/output',
     schemaSuffix: '.json',
-);
-
-NetteFilesGeneratorFactory::create($config)->run();
+    undefinedPath: 'Undefined.json',
+)->run();
 ```
 
 Run it with `php generate.php` whenever your schemas change.
@@ -61,9 +58,11 @@ Run it with `php generate.php` whenever your schemas change.
 | Option | Type | Description |
 |---|---|---|
 | `baseNamespace` | `string` | Root namespace for all generated classes |
-| `schemaPath` | `AbsoluteUnixDirectoryPath` | Directory containing your schema files |
-| `outputPath` | `AbsoluteUnixDirectoryPath` | Directory where generated PHP files are written |
-| `schemaSuffix` | `string` | File extension used to identify schema files (e.g. `.json`) |
+| `schemaPath` | `string` | Absolute path to the directory containing your schema files |
+| `outputPath` | `string` | Absolute path to the directory where generated PHP files are written |
+| `schemaSuffix` | `string` | File extension used to identify schema files; also selects the decoder (`.json` or `.yaml`) |
+| `undefinedPath` | `string` | Schema path (relative to `schemaPath`) representing an absent value, referenced by non-required properties so absence is distinguishable from `null` |
+| `typeMappings` | `array<string, class-string>` | Optional. Maps a schema path (relative to `schemaPath`) to an existing class to reference instead of generating, e.g. `['DateTimeImmutable.json' => DateTimeImmutable::class]` |
 
 Schema files in subdirectories of `schemaPath` produce classes in sub-namespaces. For example, `schemas/billing/Address.json` generates `App\Dto\billing\Address`.
 
@@ -172,7 +171,7 @@ final class Order
 
 ## YAML Support
 
-To use YAML schema files, install `symfony/yaml` and use `YamlDecoder`:
+YAML schema files are supported out of the box. Install `symfony/yaml` and set `schemaSuffix` to `.yaml` - `create()` selects the matching decoder from the suffix automatically:
 
 ```bash
 composer require symfony/yaml
@@ -180,10 +179,17 @@ composer require symfony/yaml
 
 ```php
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
-use Guuzen\JsonSchemaCodegen\Schema\YamlDecoder;
 
-NetteFilesGeneratorFactory::create($config, decoder: new YamlDecoder())->run();
+NetteFilesGeneratorFactory::create(
+    baseNamespace: 'App\Dto',
+    schemaPath: '/path/to/schemas',
+    outputPath: '/path/to/output',
+    schemaSuffix: '.yaml',
+    undefinedPath: 'Undefined.yaml',
+)->run();
 ```
+
+For full control, use `NetteFilesGeneratorFactory::assemble(...)` directly.
 
 ## Running Tests
 

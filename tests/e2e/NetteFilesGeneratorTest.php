@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\E2e;
 
-use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
-use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -31,8 +29,6 @@ use PHPUnit\Framework\TestCase;
  */
 final class NetteFilesGeneratorTest extends TestCase
 {
-    private const string CONFIG_FILE = __DIR__ . '/fixtures/config.php';
-
     private const string EXPECTED = __DIR__ . '/fixtures/expected/';
 
     private const string SCHEMAS = __DIR__ . '/fixtures/schemas/';
@@ -77,11 +73,13 @@ final class NetteFilesGeneratorTest extends TestCase
 
     public function testGeneratesDtosIntoTheSameFolderAsSchemas(): void
     {
-        /** @var Config $config */
-        $config = require self::CONFIG_FILE;
         NetteFilesGeneratorFactory::create(
-            config: $config,
-            decoder: new JsonDecoder(),
+            baseNamespace: 'App\Dto',
+            schemaPath: self::SCHEMAS,
+            outputPath: self::SCHEMAS,
+            schemaSuffix: '.json',
+            undefinedPath: 'Undefined.json',
+            typeMappings: ['DateTimeImmutable.json' => \DateTimeImmutable::class],
         )->run();
 
         foreach (self::FILES as $expectedPath => $actualPath) {
