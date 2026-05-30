@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
@@ -22,7 +22,7 @@ final readonly class CreatePhpFile
     /**
      * @return array{0: PhpFile, 1: PhpNamespace, 2:ClassType, 3: Method}
      */
-    public function constructorPromoted(AbsoluteUri $schemaUri, Schema $schema): array
+    public function constructorPromoted(AbsoluteUri $schemaUri, SchemaTree $tree): array
     {
         $fqcn = $this->fqcnResolver->fromUri($schemaUri);
 
@@ -32,8 +32,8 @@ final readonly class CreatePhpFile
         $namespace = $file->addNamespace($fqcn->namespace());
         $class = $namespace->addClass($fqcn->className());
 
-        if ($schema->description !== null) {
-            $class->addComment($schema->description);
+        if ($tree->schema->description !== null) {
+            $class->addComment($tree->schema->description);
         }
 
         $constructor = $class->addMethod('__construct');

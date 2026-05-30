@@ -25,11 +25,11 @@ final readonly class OptionalModifier implements PropertyModifier
 
     public function modify(object $context): void
     {
-        if ($context->propertySchema->required) {
+        if ($context->tree->schema->required) {
             return;
         }
 
-        $default = $this->generator->generate($context->propertySchema);
+        $default = $this->generator->generate($context->tree);
 
         if ($default !== null) {
             $value = $default->value instanceof NewObjectDefaultValue
@@ -40,12 +40,12 @@ final readonly class OptionalModifier implements PropertyModifier
             return;
         }
 
-        if ($context->propertySchema->anyOf !== null) {
-            foreach ($context->propertySchema->anyOf as $branch) {
-                if ($branch->ref === null) {
+        if ($context->tree->anyOf !== null) {
+            foreach ($context->tree->anyOf as $branch) {
+                if ($branch->schema->ref === null) {
                     continue;
                 }
-                if ($branch->ref->uri->value === $this->undefinedUri->value) {
+                if ($branch->schema->ref->uri->value === $this->undefinedUri->value) {
                     $fqcn = $this->fqcnResolver->fromUri($this->undefinedUri);
                     $context->namespace->addUse($fqcn->fqcn);
                     $context->parameter->setDefaultValue(Literal::new($fqcn->className()));

@@ -20,7 +20,7 @@ final readonly class CommentModifier implements PropertyModifier
 
     public function modify(object $context): void
     {
-        $comment = $this->generator->generate($context->propertySchema);
+        $comment = $this->generator->generate($context->tree);
 
         if ($comment !== null) {
             $context->parameter->addComment($comment);

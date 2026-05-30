@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator;
 
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
-
 final class ConstructorParameterOrder
 {
     /**
-     * @return array<string, Schema>
+     * @return array<string, SchemaTree>
      */
-    public function order(Schema $schema): array
+    public function order(SchemaTree $tree): array
     {
         $required = [];
         $optional = [];
 
-        foreach ($schema->properties ?? [] as $propertyName => $propertySchema) {
-            if ($propertySchema->required) {
+        foreach ($tree->properties ?? [] as $propertyName => $propertySchema) {
+            if ($propertySchema->schema->required) {
                 $required[$propertyName] = $propertySchema;
                 continue;
             }

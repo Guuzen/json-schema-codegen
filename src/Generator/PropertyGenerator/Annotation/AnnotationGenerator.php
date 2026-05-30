@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
 
 interface AnnotationGenerator
 {
-    public function generate(Schema $schema): ResolvedAnnotation;
+    public function generate(SchemaTree $tree): ResolvedAnnotation;
 }

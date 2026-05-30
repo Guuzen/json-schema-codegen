@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
 
 final readonly class DefaultDefaultGenerator implements DefaultGenerator
 {
@@ -14,16 +14,16 @@ final readonly class DefaultDefaultGenerator implements DefaultGenerator
     ) {
     }
 
-    public function generate(Schema $schema): ?DefaultValue
+    public function generate(SchemaTree $tree): ?DefaultValue
     {
-        $schemaDefault = $schema->default;
+        $schemaDefault = $tree->schema->default;
         if ($schemaDefault === null) {
             return null;
         }
 
-        if ($schema->ref !== null && is_array($schemaDefault->value)) {
-            $fqcn = $this->fqcnResolver->fromUri($schema->ref->uri);
-            $alias = $schema->xAlias ?? $fqcn->className();
+        if ($tree->schema->ref !== null && is_array($schemaDefault->value)) {
+            $fqcn = $this->fqcnResolver->fromUri($tree->schema->ref->uri);
+            $alias = $tree->schema->xAlias ?? $fqcn->className();
 
             return new DefaultValue(new NewObjectDefaultValue($alias, $schemaDefault->value));
         }

@@ -7,7 +7,7 @@ namespace Guuzen\JsonSchemaCodegen\Nette;
 use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyModifier;
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaTree;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 use Nette\PhpGenerator\Printer;
@@ -26,15 +26,15 @@ final readonly class ClassGenerator implements FileGenerator
     {
     }
 
-    public function generate(AbsoluteUri $schemaUri, Schema $schema): ?string
+    public function generate(AbsoluteUri $schemaUri, SchemaTree $tree): ?string
     {
-        if ($schema->type !== SchemaType::Object) {
+        if ($tree->schema->type !== SchemaType::Object) {
             return null;
         }
 
-        [$file, $namespace, $class, $constructor] = $this->createPhpFile->constructorPromoted($schemaUri, $schema);
+        [$file, $namespace, $class, $constructor] = $this->createPhpFile->constructorPromoted($schemaUri, $tree);
 
-        foreach ($this->constructorParameterOrder->order($schema) as $propertyName => $propertySchema) {
+        foreach ($this->constructorParameterOrder->order($tree) as $propertyName => $propertySchema) {
             $parameter = $constructor->addPromotedParameter($propertyName);
             $context = new PropertyContext($propertySchema, $namespace, $parameter);
             foreach ($this->modifiers as $modifier) {

@@ -20,7 +20,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PathTransformer;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaTreeBuilder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
@@ -58,6 +58,7 @@ final class NetteFilesGeneratorFactory
             schemaParser: new SchemaParser(),
             schemaFileDecoder: $decoder ?? new JsonDecoder(),
             registry: $schemaRegistry,
+            treeBuilder: new SchemaTreeBuilder($schemaRegistry),
             generators: $generators ?? [
                 new ClassGenerator(
                     printer: new NettePrinter(),
@@ -66,7 +67,7 @@ final class NetteFilesGeneratorFactory
                     modifiers: [
                         new CommentModifier(new DefaultCommentGenerator()),
                         new AnnotationModifier(
-                            new DefaultAnnotationGenerator($fqcnResolver, new SchemaResolver($schemaRegistry)),
+                            new DefaultAnnotationGenerator($fqcnResolver),
                         ),
                         new OptionalModifier(
                             generator: new DefaultDefaultGenerator($fqcnResolver),

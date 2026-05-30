@@ -8,7 +8,7 @@ use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\ResolvedAnnotation;
-use Guuzen\JsonSchemaCodegen\Generator\SchemaResolver;
+use Guuzen\JsonSchemaCodegen\Generator\SchemaTreeBuilder;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaRegistry;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
@@ -19,11 +19,10 @@ use PHPUnit\Framework\TestCase;
 
 final class AnnotationGeneratorTest extends TestCase
 {
-    private static function make(SchemaRegistry $registry = new SchemaRegistry([])): AnnotationGenerator
+    private static function make(): AnnotationGenerator
     {
         return new DefaultAnnotationGenerator(
             new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
-            new SchemaResolver($registry),
         );
     }
 
@@ -264,6 +263,8 @@ final class AnnotationGeneratorTest extends TestCase
     #[DataProvider('provideCases')]
     public function testGenerate(Schema $schema, ResolvedAnnotation $expected, SchemaRegistry $registry): void
     {
-        self::assertEquals($expected, self::make($registry)->generate($schema));
+        $tree = new SchemaTreeBuilder($registry)->build($schema);
+
+        self::assertEquals($expected, self::make()->generate($tree));
     }
 }

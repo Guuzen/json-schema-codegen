@@ -6,10 +6,11 @@ namespace Guuzen\JsonSchemaCodegen\Generator;
 
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
-final readonly class ResolvedSchema
+final readonly class SchemaTree
 {
     /**
-     * @param list<self> $anyOf
+     * @param array<string, self>|null $properties
+     * @param list<self>|null          $anyOf
      */
     public function __construct(
         public Schema $schema,
@@ -17,6 +18,7 @@ final readonly class ResolvedSchema
         public ?self $ref,
         public ?self $items,
         public ?array $anyOf,
+        public ?array $properties,
     )
     {
     }
