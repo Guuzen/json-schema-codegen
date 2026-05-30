@@ -1,11 +1,12 @@
 {
     "description": "An event with a date",
     "type": "object",
-    "required": ["name", "date", "startsAt", "slug"],
+    "required": ["name", "date", "startsAt", "slug", "createdAt"],
     "properties": {
         "name": {"type": "string"},
         "date": {"type": "string", "format": "date", "description": "Date in YYYY-MM-DD format"},
         "startsAt": {"type": "string", "format": "date-time", "description": "Start timestamp in ATOM format"},
-        "slug": {"type": "string", "pattern": "^\\d{3}\\-\\d{3}$", "description": "Slug like 123-456"}
+        "slug": {"type": "string", "pattern": "^\\d{3}\\-\\d{3}$", "description": "Slug like 123-456"},
+        "createdAt": {"$ref": "DateTimeImmutable.json"}
     }
 }

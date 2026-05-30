@@ -21,9 +21,9 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnot
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
+use Guuzen\JsonSchemaCodegen\Generator\TypeMappings;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use Guuzen\JsonSchemaCodegen\Schema\SchemaParser;
-use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 
 final class NetteFilesGeneratorFactory
 {
@@ -32,7 +32,6 @@ final class NetteFilesGeneratorFactory
      */
     public static function create(
         Config $config,
-        AbsoluteUri $undefinedUri,
         ?FileLoader $fileLoader = null,
         ?SchemaDecoder $decoder = null,
         ?FileDumper $fileDumper = null,
@@ -42,12 +41,14 @@ final class NetteFilesGeneratorFactory
     ): FilesGenerator
     {
         $fqcnResolver = self::createFqcnResolver($config);
+        $typeMappings = TypeMappings::create($config->schemaPath, $config->typeMappings);
+        $undefinedUri = $config->schemaPath->resolve($config->undefinedPath)->toUri();
         $printer = new NettePrinter();
         $createPhpFile = new CreatePhpFile($fqcnResolver);
         $promotedParameter = new PromotedParameter([
             new CommentModifier(new DefaultCommentGenerator()),
             new AnnotationModifier(
-                new DefaultAnnotationGenerator($fqcnResolver),
+                new DefaultAnnotationGenerator($fqcnResolver, $typeMappings),
             ),
             new OptionalModifier(
                 generator: new DefaultDefaultGenerator($fqcnResolver),
@@ -67,6 +68,7 @@ final class NetteFilesGeneratorFactory
             fileDumper: $fileDumper ?? new PutContents(),
             schemaParser: new SchemaParser(),
             schemaFileDecoder: $decoder ?? new JsonDecoder(),
+            typeMappings: $typeMappings,
             generators: $generators ?? [
                 new ClassGenerator(
                     printer: $printer,
@@ -91,4 +93,5 @@ final class NetteFilesGeneratorFactory
             $config->schemaSuffix,
         );
     }
+
 }

@@ -11,4 +11,5 @@ return new \Guuzen\JsonSchemaCodegen\Config(
     outputPath: new AbsoluteUnixDirectoryPath(__DIR__ . '/schemas'),
     schemaSuffix: '.json',
     undefinedPath: new RelativeUnixPath('Undefined.json'),
+    typeMappings: ['DateTimeImmutable.json' => DateTimeImmutable::class],
 );

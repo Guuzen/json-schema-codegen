@@ -20,6 +20,7 @@ final readonly class FilesGenerator
         private FileDumper $fileDumper,
         private SchemaParser $schemaParser,
         private SchemaDecoder $schemaFileDecoder,
+        private TypeMappings $typeMappings,
         private iterable $generators,
     )
     {
@@ -29,6 +30,10 @@ final readonly class FilesGenerator
     {
         foreach ($this->pathCollector->collect() as $path) {
             $uri = $path->toUri();
+            // Schemas mapped to an existing type are referenced, not generated.
+            if ($this->typeMappings->has($uri)) {
+                continue;
+            }
             $schema = $this->schemaParser->parse(
                 $this->schemaFileDecoder->decode($this->fileLoader->load($path)),
                 $uri,

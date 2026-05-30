@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
+use Guuzen\JsonSchemaCodegen\Fqcn\Fqcn;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\AnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\DefaultAnnotationGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation\ResolvedAnnotation;
+use Guuzen\JsonSchemaCodegen\Generator\TypeMappings;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\Ref;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
@@ -230,5 +232,19 @@ final class AnnotationGeneratorTest extends TestCase
     public function testGenerate(Schema $schema, ResolvedAnnotation $expected): void
     {
         self::assertEquals($expected, self::make()->generate($schema));
+    }
+
+    public function testRendersMappedTypeForAReferencedSchema(): void
+    {
+        $uri = 'file:///schemas/DateTimeImmutable.json';
+        $generator = new DefaultAnnotationGenerator(
+            new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
+            new TypeMappings([$uri => new Fqcn('DateTimeImmutable')]),
+        );
+
+        self::assertEquals(
+            new ResolvedAnnotation('DateTimeImmutable', [['alias' => 'DateTimeImmutable', 'fqcn' => 'DateTimeImmutable']]),
+            $generator->generate(new Schema(ref: new Ref(new AbsoluteUri($uri)))),
+        );
     }
 }

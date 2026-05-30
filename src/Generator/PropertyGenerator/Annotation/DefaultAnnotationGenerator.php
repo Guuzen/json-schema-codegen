@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
+use Guuzen\JsonSchemaCodegen\Generator\TypeMappings;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
@@ -12,6 +13,7 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
 {
     public function __construct(
         private FqcnResolver $fqcnResolver,
+        private TypeMappings $typeMappings = new TypeMappings(),
     )
     {
     }
@@ -130,7 +132,7 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
             return ResolvedAnnotation::mixed();
         }
 
-        $fqcn = $this->fqcnResolver->fromUri($ref->uri);
+        $fqcn = $this->typeMappings->get($ref->uri) ?? $this->fqcnResolver->fromUri($ref->uri);
         $alias = $schema->xAlias ?? $fqcn->className();
 
         return new ResolvedAnnotation($alias, [['alias' => $alias, 'fqcn' => $fqcn->fqcn]]);

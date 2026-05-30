@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use DateTimeImmutable;
+
 /**
  * An event with a date
  */
@@ -32,6 +34,10 @@ final class Event
          * @var string
          */
         public $slug,
+        /**
+         * @var DateTimeImmutable
+         */
+        public $createdAt,
     ) {
     }
 }

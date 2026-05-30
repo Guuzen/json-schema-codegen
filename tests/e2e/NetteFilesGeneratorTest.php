@@ -6,7 +6,6 @@ namespace Guuzen\JsonSchemaCodegen\Tests\E2e;
 
 use Guuzen\JsonSchemaCodegen\Config;
 use Guuzen\JsonSchemaCodegen\Nette\NetteFilesGeneratorFactory;
-use Guuzen\JsonSchemaCodegen\Path\RelativeUnixPath;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
 use PHPUnit\Framework\TestCase;
 
@@ -82,7 +81,6 @@ final class NetteFilesGeneratorTest extends TestCase
         $config = require self::CONFIG_FILE;
         NetteFilesGeneratorFactory::create(
             config: $config,
-            undefinedUri: $config->schemaPath->resolve($config->undefinedPath)->toUri(),
             decoder: new JsonDecoder(),
         )->run();
 
@@ -92,6 +90,10 @@ final class NetteFilesGeneratorTest extends TestCase
                 $expectedPath, $actualPath, sprintf('Content of "%s" does not match expected', $actualPath)
             );
         }
+
+        // DateTimeImmutable.json is mapped to an existing type (see config), so it is
+        // referenced (Event::$createdAt) but never generated as a class of its own.
+        self::assertFileDoesNotExist(self::SCHEMAS . 'DateTimeImmutable.php');
     }
 
     private function cleanGeneratedFiles(): void
