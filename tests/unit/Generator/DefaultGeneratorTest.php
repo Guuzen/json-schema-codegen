@@ -18,10 +18,16 @@ use PHPUnit\Framework\TestCase;
 
 final class DefaultGeneratorTest extends TestCase
 {
+    private static function undefinedUri(): AbsoluteUri
+    {
+        return new AbsoluteUri('file:///schemas/Undefined.json');
+    }
+
     private static function makeDefaultGenerator(): DefaultDefaultGenerator
     {
         return new DefaultDefaultGenerator(
             new FqcnResolver(new AbsoluteUri('file:///schemas/'), 'App\\Dto', '.json'),
+            self::undefinedUri(),
         );
     }
 
@@ -31,49 +37,67 @@ final class DefaultGeneratorTest extends TestCase
     public static function provideDefaults(): iterable
     {
         yield 'string with default value' => [
-            new Schema(type: SchemaType::String, default: new DefaultValue('foo')),
+            new Schema(type: SchemaType::String, required: false, default: new DefaultValue('foo')),
             new PropertyDefaultValue('foo'),
         ];
         yield 'int with default value' => [
-            new Schema(type: SchemaType::Integer, default: new DefaultValue(1)),
+            new Schema(type: SchemaType::Integer, required: false, default: new DefaultValue(1)),
             new PropertyDefaultValue(1),
         ];
         yield 'float with default value' => [
-            new Schema(type: SchemaType::Number, default: new DefaultValue(1.1)),
+            new Schema(type: SchemaType::Number, required: false, default: new DefaultValue(1.1)),
             new PropertyDefaultValue(1.1),
         ];
         yield 'bool with default value' => [
-            new Schema(type: SchemaType::Boolean, default: new DefaultValue(false)),
+            new Schema(type: SchemaType::Boolean, required: false, default: new DefaultValue(false)),
             new PropertyDefaultValue(false),
         ];
         yield 'null type with default value' => [
-            new Schema(type: SchemaType::Null, default: new DefaultValue(null)),
+            new Schema(type: SchemaType::Null, required: false, default: new DefaultValue(null)),
             new PropertyDefaultValue(null),
         ];
         yield 'array with default value' => [
-            new Schema(type: SchemaType::Array, default: new DefaultValue([])),
+            new Schema(type: SchemaType::Array, required: false, default: new DefaultValue([])),
             new PropertyDefaultValue([]),
         ];
         yield 'enum strings with default value' => [
-            new Schema(enum: ['active', 'disabled'], default: new DefaultValue('active')),
+            new Schema(required: false, enum: ['active', 'disabled'], default: new DefaultValue('active')),
             new PropertyDefaultValue('active'),
         ];
         yield 'schema with no type with default string value' => [
-            new Schema(default: new DefaultValue('some')),
+            new Schema(required: false, default: new DefaultValue('some')),
             new PropertyDefaultValue('some'),
         ];
         yield 'ref schema with null default' => [
-            new Schema(ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')), default: new DefaultValue(null)),
+            new Schema(required: false, ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')), default: new DefaultValue(null)),
             new PropertyDefaultValue(null),
         ];
         yield 'ref schema with object literal default' => [
             new Schema(
+                required: false,
                 ref: new Ref(new AbsoluteUri('file:///schemas/Address.json')),
                 default: new DefaultValue(['street' => 'Main St', 'city' => 'Anytown']),
             ),
             new PropertyDefaultValue(new NewObjectDefaultValue('Address', ['street' => 'Main St', 'city' => 'Anytown'])),
         ];
-        yield 'no default' => [new Schema(type: SchemaType::String), null];
+        yield 'no default' => [new Schema(type: SchemaType::String, required: false), null];
+        // No reason to specify undefined type without intention it to be Undefined type
+        yield 'anyOf with undefined - default is Undefined' => [
+            new Schema(
+                required: false,
+                anyOf: [
+                    new Schema(type: null),
+                    new Schema(ref: new Ref(self::undefinedUri())),
+                ],
+            ),
+            new PropertyDefaultValue(new NewObjectDefaultValue('Undefined', [])),
+        ];
+        // A required property must not get a default value, even if the schema declares one -
+        // otherwise it becomes an optional parameter ordered before required ones (invalid PHP).
+        yield 'required property gets no default' => [
+            new Schema(type: SchemaType::String, required: true, default: new DefaultValue('active')),
+            null,
+        ];
     }
 
     #[DataProvider('provideDefaults')]

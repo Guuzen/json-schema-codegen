@@ -96,9 +96,7 @@ final class NetteFilesGeneratorFactory
                 new DefaultAnnotationGenerator($fqcnResolver, $typeMappings),
             ),
             new OptionalModifier(
-                generator: new DefaultDefaultGenerator($fqcnResolver),
-                fqcnResolver: $fqcnResolver,
-                undefinedUri: $undefinedUri,
+                generator: new DefaultDefaultGenerator($fqcnResolver, $undefinedUri),
             ),
         ]);
 
