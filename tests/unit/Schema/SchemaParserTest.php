@@ -27,7 +27,7 @@ final class SchemaParserTest extends TestCase
         self::assertSame(
             ['id' => true, 'note' => false],
             array_map(
-                static fn($propertySchema): bool => $propertySchema->required,
+                static fn($propertySchema): ?bool => $propertySchema->required,
                 $schema->properties ?? [],
             ),
         );

@@ -13,14 +13,14 @@ final class ConstructorParameterOrderTest extends TestCase
 {
     public function testPlacesOptionalPropertiesAfterRequiredOnes(): void
     {
-        $orderedProperties = (new ConstructorParameterOrder())->order(
+        $orderedProperties = new ConstructorParameterOrder()->order(
             new Schema(
                 type: SchemaType::Object,
                 properties: [
                     'optionalFirst' => new Schema(type: SchemaType::String, required: false),
-                    'requiredMiddle' => new Schema(type: SchemaType::String),
+                    'requiredMiddle' => new Schema(type: SchemaType::String, required: true),
                     'optionalLast' => new Schema(type: SchemaType::String, required: false),
-                    'requiredLast' => new Schema(type: SchemaType::String),
+                    'requiredLast' => new Schema(type: SchemaType::String, required: true),
                 ],
             ),
         );
