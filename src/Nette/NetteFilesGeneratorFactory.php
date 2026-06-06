@@ -12,6 +12,7 @@ use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FileDumper;
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\FileImportsFactory;
 use Guuzen\JsonSchemaCodegen\Generator\FileLoader;
 use Guuzen\JsonSchemaCodegen\Generator\FilesGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\PathCollector;
@@ -90,10 +91,11 @@ final class NetteFilesGeneratorFactory
     {
         $printer = new NettePrinter();
         $createPhpFile = new CreatePhpFile($fqcnResolver);
+        $fileImportsFactory = new FileImportsFactory($fqcnResolver, $typeMappings);
         $promotedParameter = new PromotedParameter([
             new CommentModifier(new DefaultCommentGenerator()),
             new AnnotationModifier(
-                new DefaultAnnotationGenerator($fqcnResolver, $typeMappings),
+                new DefaultAnnotationGenerator($fqcnResolver),
             ),
             new OptionalModifier(
                 generator: new DefaultDefaultGenerator($fqcnResolver, $undefinedUri),
@@ -114,11 +116,13 @@ final class NetteFilesGeneratorFactory
                     createPhpFile: $createPhpFile,
                     constructorParameterOrder: new ConstructorParameterOrder(),
                     promotedParameter: $promotedParameter,
+                    fileImportsFactory: $fileImportsFactory,
                 ),
                 new ValueClassGenerator(
                     printer: $printer,
                     createPhpFile: $createPhpFile,
                     promotedParameter: $promotedParameter,
+                    fileImportsFactory: $fileImportsFactory,
                 ),
             ],
         );

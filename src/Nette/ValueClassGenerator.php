@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\FileImportsFactory;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
@@ -21,6 +22,7 @@ final readonly class ValueClassGenerator implements FileGenerator
         private Printer $printer,
         private CreatePhpFile $createPhpFile,
         private PromotedParameter $promotedParameter,
+        private FileImportsFactory $fileImportsFactory,
     )
     {
     }
@@ -33,7 +35,12 @@ final readonly class ValueClassGenerator implements FileGenerator
 
         [$file, $namespace, , $constructor] = $this->createPhpFile->constructorPromoted($schemaUri);
 
-        $this->promotedParameter->add($constructor, $namespace, 'value', $schema);
+        $fileImports = $this->fileImportsFactory->forFile($schemaUri, $schema);
+        foreach ($fileImports->uses() as $use) {
+            $namespace->addUse($use->fqcn);
+        }
+
+        $this->promotedParameter->add($constructor, $namespace, $fileImports, 'value', $schema);
 
         return $this->printer->printFile($file);
     }

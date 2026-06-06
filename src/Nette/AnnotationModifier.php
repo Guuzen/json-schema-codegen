@@ -20,11 +20,7 @@ final readonly class AnnotationModifier implements PropertyModifier
 
     public function modify(object $context): void
     {
-        $resolved = $this->generator->generate($context->schema);
-
-        foreach ($resolved->imports as $import) {
-            $context->namespace->addUse($import['fqcn'], $import['alias']);
-        }
+        $resolved = $this->generator->generate($context->schema, $context->refNames);
 
         $context->parameter->addComment('@var ' . $resolved->annotation);
         $context->parameter->addComment('');

@@ -6,6 +6,7 @@ namespace Guuzen\JsonSchemaCodegen\Nette;
 
 use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
+use Guuzen\JsonSchemaCodegen\Generator\FileImportsFactory;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
@@ -22,6 +23,7 @@ final readonly class ClassGenerator implements FileGenerator
         private CreatePhpFile $createPhpFile,
         private ConstructorParameterOrder $constructorParameterOrder,
         private PromotedParameter $promotedParameter,
+        private FileImportsFactory $fileImportsFactory,
     )
     {
     }
@@ -34,12 +36,18 @@ final readonly class ClassGenerator implements FileGenerator
 
         [$file, $namespace, $class, $constructor] = $this->createPhpFile->constructorPromoted($schemaUri);
 
+        $fileImports = $this->fileImportsFactory->forFile($schemaUri, $schema);
+
+        foreach ($fileImports->uses() as $use) {
+            $namespace->addUse($use->fqcn);
+        }
+
         if ($schema->description !== null) {
             $class->addComment($schema->description);
         }
 
         foreach ($this->constructorParameterOrder->order($schema) as $propertyName => $propertySchema) {
-            $this->promotedParameter->add($constructor, $namespace, $propertyName, $propertySchema);
+            $this->promotedParameter->add($constructor, $namespace, $fileImports, $propertyName, $propertySchema);
         }
 
         return $this->printer->printFile($file);

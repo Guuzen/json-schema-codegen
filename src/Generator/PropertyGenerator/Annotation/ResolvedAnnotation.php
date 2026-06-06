@@ -6,12 +6,8 @@ namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
 final readonly class ResolvedAnnotation
 {
-    /**
-     * @param list<array{alias: string, fqcn: string}> $imports
-     */
     public function __construct(
         public string $annotation,
-        public array $imports,
     ) {
     }
 
@@ -26,7 +22,6 @@ final readonly class ResolvedAnnotation
             $annotations,
             fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
                 annotation: $carry->annotation . '&' . $item->annotation,
-                imports: [...$carry->imports, ...$item->imports],
             ),
             $initial,
         );
@@ -43,7 +38,6 @@ final readonly class ResolvedAnnotation
             $annotations,
             fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
                 annotation: $carry->annotation . '|' . $item->annotation,
-                imports: [...$carry->imports, ...$item->imports],
             ),
             $initial,
         );
@@ -51,7 +45,7 @@ final readonly class ResolvedAnnotation
 
     public static function mixed(): self
     {
-        return new self(annotation: 'mixed', imports: []);
+        return new self(annotation: 'mixed');
     }
 
     public function isMixed(): bool

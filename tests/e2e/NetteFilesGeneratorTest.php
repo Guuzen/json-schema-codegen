@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  * - OrderStatus: string enum with class description
  * - CouponCode: standalone string schema referenced from Order
  * - Quantity: standalone integer schema referenced from Order
- * - Customer: $ref with title aliases, same class name from different sub-namespaces
+ * - Customer: same class name ($ref) from two sub-namespaces, rendered fully qualified to avoid a collision
  * - Order: $ref same namespace, $ref cross-namespace, nullable $ref (anyOf ref+null),
  *          list<$ref items>, anyOf two $ref branches
  * - Defaults: scalar defaults, $ref with null default, $ref with object literal default (new ClassName(...))
@@ -36,7 +36,7 @@ final class NetteFilesGeneratorTest extends TestCase
     private const array FILES = [
         // Product: all scalar types, array types, class description, property description
         self::EXPECTED . 'Product.php' => self::SCHEMAS . 'Product.php',
-        // Customer: $ref with title aliases, same class name from different namespaces
+        // Customer: same class name from two sub-namespaces, rendered fully qualified to avoid a collision
         self::EXPECTED . 'Customer.php' => self::SCHEMAS . 'Customer.php',
         // Order: $ref same/cross namespace, scalar/enum refs as classes, nullable $ref, list<$ref>, anyOf two refs
         self::EXPECTED . 'Order.php' => self::SCHEMAS . 'Order.php',

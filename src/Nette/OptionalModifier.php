@@ -21,7 +21,7 @@ final readonly class OptionalModifier implements PropertyModifier
 
     public function modify(object $context): void
     {
-        $default = $this->generator->generate($context->schema);
+        $default = $this->generator->generate($context->schema, $context->refNames);
 
         if ($default !== null) {
             $value = $default->value instanceof NewObjectDefaultValue

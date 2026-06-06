@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\RefNames;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 use Guuzen\JsonSchemaCodegen\Uri\AbsoluteUri;
 
@@ -16,7 +17,7 @@ final readonly class DefaultDefaultGenerator implements DefaultGenerator
     ) {
     }
 
-    public function generate(Schema $schema): ?DefaultValue
+    public function generate(Schema $schema, RefNames $refNames): ?DefaultValue
     {
         if ($schema->required) {
             return null;
@@ -28,7 +29,7 @@ final readonly class DefaultDefaultGenerator implements DefaultGenerator
             }
 
             if ($branch->ref->uri->value === $this->undefinedUri->value) {
-                return $this->defaultFromUri($this->undefinedUri, [], null);
+                return $this->defaultFromUri($this->undefinedUri, [], $refNames);
             }
         }
 
@@ -39,7 +40,7 @@ final readonly class DefaultDefaultGenerator implements DefaultGenerator
         }
 
         if ($schema->ref !== null && is_array($schemaDefault->value)) {
-            return $this->defaultFromUri($schema->ref->uri, $schemaDefault->value, $schema->xAlias);
+            return $this->defaultFromUri($schema->ref->uri, $schemaDefault->value, $refNames);
         }
 
         return new DefaultValue($schemaDefault->value);
@@ -48,11 +49,10 @@ final readonly class DefaultDefaultGenerator implements DefaultGenerator
     /**
      * @param array<array-key, mixed> $defaultValue
      */
-    private function defaultFromUri(AbsoluteUri $uri, array $defaultValue, ?string $alias): DefaultValue
+    private function defaultFromUri(AbsoluteUri $uri, array $defaultValue, RefNames $refNames): DefaultValue
     {
         $fqcn = $this->fqcnResolver->fromUri($uri);
-        $alias = $alias ?? $fqcn->className();
 
-        return new DefaultValue(new NewObjectDefaultValue($alias, $defaultValue));
+        return new DefaultValue(new NewObjectDefaultValue($refNames->name($fqcn), $defaultValue));
     }
 }
