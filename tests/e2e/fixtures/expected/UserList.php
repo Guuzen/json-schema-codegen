@@ -6,6 +6,8 @@ namespace App\Dto;
 
 /**
  * A list of user identifiers
+ *
+ * @immutable
  */
 final class UserList
 {

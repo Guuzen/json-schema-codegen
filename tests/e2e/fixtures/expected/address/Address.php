@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Dto\address;
 
+/**
+ * @immutable
+ */
 final class Address
 {
     public function __construct(

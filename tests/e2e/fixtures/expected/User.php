@@ -6,6 +6,8 @@ namespace App\Dto;
 
 /**
  * A user with a UUID identifier
+ *
+ * @immutable
  */
 final class User
 {

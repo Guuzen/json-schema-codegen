@@ -6,6 +6,8 @@ namespace App\Dto;
 
 /**
  * A sellable product
+ *
+ * @immutable
  */
 final class Product
 {

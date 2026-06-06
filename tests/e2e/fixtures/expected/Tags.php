@@ -6,6 +6,8 @@ namespace App\Dto;
 
 /**
  * A collection of tags
+ *
+ * @immutable
  */
 final class Tags
 {

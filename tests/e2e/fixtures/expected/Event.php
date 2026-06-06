@@ -8,6 +8,8 @@ use DateTimeImmutable;
 
 /**
  * An event with a date
+ *
+ * @immutable
  */
 final class Event
 {

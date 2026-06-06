@@ -6,6 +6,8 @@ namespace App\Dto;
 
 /**
  * Undefined default value
+ *
+ * @immutable
  */
 final class Undefined
 {

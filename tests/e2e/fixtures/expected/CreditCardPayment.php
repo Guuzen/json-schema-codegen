@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+/**
+ * @immutable
+ */
 final class CreditCardPayment
 {
     public function __construct(

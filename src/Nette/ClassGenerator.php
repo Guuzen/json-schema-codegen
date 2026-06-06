@@ -44,7 +44,10 @@ final readonly class ClassGenerator implements FileGenerator
 
         if ($schema->description !== null) {
             $class->addComment($schema->description);
+            $class->addComment('');
         }
+
+        $class->addComment('@immutable');
 
         foreach ($this->constructorParameterOrder->order($schema) as $propertyName => $propertySchema) {
             $this->promotedParameter->add($constructor, $namespace, $fileImports, $propertyName, $propertySchema);

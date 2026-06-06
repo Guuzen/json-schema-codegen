@@ -6,6 +6,8 @@ namespace App\Dto;
 
 /**
  * A DTO with explicit default values
+ *
+ * @immutable
  */
 final class Defaults
 {

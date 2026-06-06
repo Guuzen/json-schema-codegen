@@ -6,6 +6,9 @@ namespace App\Dto;
 
 use App\Dto\address\Address;
 
+/**
+ * @immutable
+ */
 final class Order
 {
     public function __construct(
