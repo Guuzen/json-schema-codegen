@@ -4,26 +4,31 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Tests\Unit\Generator;
 
+use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\AddComment;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentGenerator;
-use Guuzen\JsonSchemaCodegen\Schema\Schema;
+use Guuzen\JsonSchemaCodegen\Nette\AddComment\Comment;
+use Guuzen\JsonSchemaCodegen\Nette\AddComment\NetteCommentFactory;
+use Guuzen\JsonSchemaCodegen\Nette\AddComment\NoComment;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
+use Guuzen\JsonSchemaCodegen\Schema\Schema;
+use Nette\PhpGenerator\Parameter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CommentGeneratorTest extends TestCase
 {
     /**
-     * @return iterable<string, array{Schema, ?string}>
+     * @return iterable<string, array{Schema, AddComment<Parameter>}>
      */
     public static function provideComments(): iterable
     {
         yield 'no description'       => [
             new Schema(type: SchemaType::String),
-            null,
+            new NoComment(),
         ];
         yield 'plain description'    => [
             new Schema(type: SchemaType::String, description: 'parent'),
-            'parent',
+            new Comment('parent'),
         ];
         yield 'anyOf branch descriptions appended to parent description' => [
             new Schema(
@@ -34,7 +39,7 @@ final class CommentGeneratorTest extends TestCase
                 ],
                 description: 'parent',
             ),
-            "parent\n\nfirst branch\nthird branch",
+            new Comment("parent\n\nfirst branch\nthird branch"),
         ];
         yield 'anyOf branch descriptions without parent description' => [
             new Schema(
@@ -43,7 +48,7 @@ final class CommentGeneratorTest extends TestCase
                     new Schema(type: SchemaType::Integer, description: 'second branch'),
                 ],
             ),
-            "first branch\nsecond branch",
+            new Comment("first branch\nsecond branch"),
         ];
         yield 'anyOf without any descriptions' => [
             new Schema(
@@ -52,13 +57,16 @@ final class CommentGeneratorTest extends TestCase
                     new Schema(type: SchemaType::Null),
                 ],
             ),
-            null,
+            new NoComment(),
         ];
     }
 
+    /**
+     * @param AddComment<Parameter> $expected
+     */
     #[DataProvider('provideComments')]
-    public function testCommentGeneration(Schema $schema, ?string $expected): void
+    public function testCommentGeneration(Schema $schema, AddComment $expected): void
     {
-        self::assertSame($expected, new DefaultCommentGenerator()->generate($schema));
+        self::assertEquals($expected, new DefaultCommentGenerator(new NetteCommentFactory())->generate($schema));
     }
 }

@@ -6,9 +6,22 @@ namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment;
 
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
-final class DefaultCommentGenerator implements CommentGenerator
+/**
+ * @template Context
+ *
+ * @implements CommentGenerator<Context>
+ */
+final readonly class DefaultCommentGenerator implements CommentGenerator
 {
-    public function generate(Schema $schema): ?string
+    /**
+     * @param CommentFactory<Context> $commentFactory
+     */
+    public function __construct(
+        private CommentFactory $commentFactory,
+    ) {
+    }
+
+    public function generate(Schema $schema): AddComment
     {
         $description = $schema->description;
 
@@ -22,13 +35,15 @@ final class DefaultCommentGenerator implements CommentGenerator
         $joinedAnyOfDescriptions = implode("\n", $anyOfDescriptions);
 
         if ($description !== null && $anyOfDescriptions !== []) {
-            return "$description\n\n$joinedAnyOfDescriptions";
+            return $this->commentFactory->comment("$description\n\n$joinedAnyOfDescriptions");
         }
 
         if ($anyOfDescriptions === []) {
-            return $description;
+            return $description === null
+                ? $this->commentFactory->noComment()
+                : $this->commentFactory->comment($description);
         }
 
-        return $joinedAnyOfDescriptions;
+        return $this->commentFactory->comment($joinedAnyOfDescriptions);
     }
 }

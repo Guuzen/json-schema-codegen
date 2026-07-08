@@ -22,6 +22,10 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentG
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\TypeMappings;
+use Guuzen\JsonSchemaCodegen\Nette\AddComment\AddComment;
+use Guuzen\JsonSchemaCodegen\Nette\AddComment\NetteCommentFactory;
+use Guuzen\JsonSchemaCodegen\Nette\AddOptionalValue\AddOptionalValue;
+use Guuzen\JsonSchemaCodegen\Nette\AddOptionalValue\NetteDefaultValueFactory;
 use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixDirectoryPath;
 use Guuzen\JsonSchemaCodegen\Path\RelativeUnixPath;
 use Guuzen\JsonSchemaCodegen\Schema\JsonDecoder;
@@ -93,12 +97,12 @@ final class NetteFilesGeneratorFactory
         $createPhpFile = new CreatePhpFile($fqcnResolver);
         $fileImportsFactory = new FileImportsFactory($fqcnResolver, $typeMappings);
         $promotedParameter = new PromotedParameter([
-            new CommentModifier(new DefaultCommentGenerator()),
+            new AddComment(new DefaultCommentGenerator(new NetteCommentFactory())),
             new AnnotationModifier(
                 new DefaultAnnotationGenerator($fqcnResolver),
             ),
-            new OptionalModifier(
-                generator: new DefaultDefaultGenerator($fqcnResolver, $undefinedUri),
+            new AddOptionalValue(
+                generator: new DefaultDefaultGenerator($fqcnResolver, $undefinedUri, new NetteDefaultValueFactory()),
             ),
         ]);
 
