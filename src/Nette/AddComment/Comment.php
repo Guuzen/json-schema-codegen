@@ -19,6 +19,5 @@ final readonly class Comment implements AddComment
     public function addTo($context): void
     {
         $context->addComment($this->comment);
-        $context->addComment('');
     }
 }

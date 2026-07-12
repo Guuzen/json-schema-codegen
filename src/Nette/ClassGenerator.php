@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
-use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\FileImportsFactory;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
@@ -20,10 +20,9 @@ final readonly class ClassGenerator implements FileGenerator
 {
     public function __construct(
         private Printer $printer,
-        private CreatePhpFile $createPhpFile,
-        private ConstructorParameterOrder $constructorParameterOrder,
-        private PromotedParameter $promotedParameter,
         private FileImportsFactory $fileImportsFactory,
+        private FqcnResolver $fqcnResolver,
+        private GeneratorTools $tools,
     )
     {
     }
@@ -34,25 +33,20 @@ final readonly class ClassGenerator implements FileGenerator
             return null;
         }
 
-        [$file, $namespace, $class, $constructor] = $this->createPhpFile->constructorPromoted($schemaUri);
+        $class = NetteClass::create($schemaUri, $this->fqcnResolver);
 
         $fileImports = $this->fileImportsFactory->forFile($schemaUri, $schema);
 
-        foreach ($fileImports->uses() as $use) {
-            $namespace->addUse($use->fqcn);
-        }
+        $class->addUses($fileImports);
 
-        if ($schema->description !== null) {
-            $class->addComment($schema->description);
-            $class->addComment('');
-        }
-
+        $class->addComment($schema->description);
+        $class->addComment('');
         $class->addComment('@immutable');
 
-        foreach ($this->constructorParameterOrder->order($schema) as $propertyName => $propertySchema) {
-            $this->promotedParameter->add($constructor, $namespace, $fileImports, $propertyName, $propertySchema);
-        }
+        $constructor = $class->addConstructor();
 
-        return $this->printer->printFile($file);
+        $constructor->addParameters($schema, $fileImports, $this->tools);
+
+        return $class->render($this->printer);
     }
 }

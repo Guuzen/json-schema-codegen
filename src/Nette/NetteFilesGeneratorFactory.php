@@ -9,7 +9,6 @@ use Guuzen\JsonSchemaCodegen\Filesystem\OutputPathTransformer;
 use Guuzen\JsonSchemaCodegen\Filesystem\PathsWithSuffix;
 use Guuzen\JsonSchemaCodegen\Filesystem\PutContents;
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
-use Guuzen\JsonSchemaCodegen\Generator\ConstructorParameterOrder;
 use Guuzen\JsonSchemaCodegen\Generator\FileDumper;
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\FileImportsFactory;
@@ -22,9 +21,7 @@ use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Comment\DefaultCommentG
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Default\DefaultDefaultGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\SchemaDecoder;
 use Guuzen\JsonSchemaCodegen\Generator\TypeMappings;
-use Guuzen\JsonSchemaCodegen\Nette\AddComment\AddComment;
 use Guuzen\JsonSchemaCodegen\Nette\AddComment\NetteCommentFactory;
-use Guuzen\JsonSchemaCodegen\Nette\AddOptionalValue\AddOptionalValue;
 use Guuzen\JsonSchemaCodegen\Nette\AddOptionalValue\NetteDefaultValueFactory;
 use Guuzen\JsonSchemaCodegen\Path\AbsoluteUnixDirectoryPath;
 use Guuzen\JsonSchemaCodegen\Path\RelativeUnixPath;
@@ -94,17 +91,13 @@ final class NetteFilesGeneratorFactory
     ): FilesGenerator
     {
         $printer = new NettePrinter();
-        $createPhpFile = new CreatePhpFile($fqcnResolver);
         $fileImportsFactory = new FileImportsFactory($fqcnResolver, $typeMappings);
-        $promotedParameter = new PromotedParameter([
-            new AddComment(new DefaultCommentGenerator(new NetteCommentFactory())),
-            new AnnotationModifier(
-                new DefaultAnnotationGenerator($fqcnResolver),
-            ),
-            new AddOptionalValue(
-                generator: new DefaultDefaultGenerator($fqcnResolver, $undefinedUri, new NetteDefaultValueFactory()),
-            ),
-        ]);
+
+        $generatorTools = new GeneratorTools(
+            annotationGenerator: new DefaultAnnotationGenerator($fqcnResolver),
+            commentGenerator: new DefaultCommentGenerator(new NetteCommentFactory()),
+            defaultGenerator: new DefaultDefaultGenerator($fqcnResolver, $undefinedUri, new NetteDefaultValueFactory()),
+        );
 
         return new FilesGenerator(
             pathCollector: $pathCollector,
@@ -117,16 +110,15 @@ final class NetteFilesGeneratorFactory
             generators: $generators ?? [
                 new ClassGenerator(
                     printer: $printer,
-                    createPhpFile: $createPhpFile,
-                    constructorParameterOrder: new ConstructorParameterOrder(),
-                    promotedParameter: $promotedParameter,
                     fileImportsFactory: $fileImportsFactory,
+                    fqcnResolver: $fqcnResolver,
+                    tools: $generatorTools,
                 ),
                 new ValueClassGenerator(
                     printer: $printer,
-                    createPhpFile: $createPhpFile,
-                    promotedParameter: $promotedParameter,
                     fileImportsFactory: $fileImportsFactory,
+                    fqcnResolver: $fqcnResolver,
+                    tools: $generatorTools,
                 ),
             ],
         );

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Guuzen\JsonSchemaCodegen\Nette;
 
+use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
 use Guuzen\JsonSchemaCodegen\Generator\FileGenerator;
 use Guuzen\JsonSchemaCodegen\Generator\FileImportsFactory;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
@@ -20,9 +21,9 @@ final readonly class ValueClassGenerator implements FileGenerator
 {
     public function __construct(
         private Printer $printer,
-        private CreatePhpFile $createPhpFile,
-        private PromotedParameter $promotedParameter,
         private FileImportsFactory $fileImportsFactory,
+        private FqcnResolver $fqcnResolver,
+        private GeneratorTools $tools,
     )
     {
     }
@@ -33,15 +34,16 @@ final readonly class ValueClassGenerator implements FileGenerator
             return null;
         }
 
-        [$file, $namespace, , $constructor] = $this->createPhpFile->constructorPromoted($schemaUri);
+        $class = NetteClass::create($schemaUri, $this->fqcnResolver);
 
         $fileImports = $this->fileImportsFactory->forFile($schemaUri, $schema);
-        foreach ($fileImports->uses() as $use) {
-            $namespace->addUse($use->fqcn);
-        }
 
-        $this->promotedParameter->add($constructor, $namespace, $fileImports, 'value', $schema);
+        $class->addUses($fileImports);
 
-        return $this->printer->printFile($file);
+        $constructor = $class->addConstructor();
+
+        $constructor->addParameter($fileImports, 'value', $schema, $this->tools);
+
+        return $class->render($this->printer);
     }
 }
