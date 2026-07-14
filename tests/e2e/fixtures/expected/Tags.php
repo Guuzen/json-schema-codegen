@@ -23,7 +23,7 @@ final class Tags
          *
          * Tag
          *
-         * @var 'featured'|'sale'|'new'|'trending'|null
+         * @var Tag|null
          */
         public $tag,
     ) {

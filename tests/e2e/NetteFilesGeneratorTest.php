@@ -60,6 +60,7 @@ final class NetteFilesGeneratorTest extends TestCase
         self::EXPECTED . 'UserList.php' => self::SCHEMAS . 'UserList.php',
         // Tags: Assert\All validation for array items with enum choices
         self::EXPECTED . 'Tags.php' => self::SCHEMAS . 'Tags.php',
+        self::EXPECTED . 'Tag.php' => self::SCHEMAS . 'Tag.php',
         self::EXPECTED . 'Undefined.php' => self::SCHEMAS . 'Undefined.php',
         // Subdirectory schemas: namespace derived from path relative to baseUri
         self::EXPECTED . 'address/Address.php' => self::SCHEMAS . 'address/Address.php',

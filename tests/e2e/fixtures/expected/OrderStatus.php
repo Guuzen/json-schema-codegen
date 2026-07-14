@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
-final class OrderStatus
+/**
+ * The status of an order
+ */
+enum OrderStatus: string
 {
-    public function __construct(
-        /**
-         * The status of an order
-         *
-         * @var 'pending'|'processing'|'shipped'|'delivered'
-         */
-        public $value,
-    ) {
-    }
+    case pending = 'pending';
+    case processing = 'processing';
+    case shipped = 'shipped';
+    case delivered = 'delivered';
 }

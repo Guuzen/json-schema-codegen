@@ -14,7 +14,7 @@
         "tag": {
             "anyOf": [
                 {
-                    "enum": ["featured", "sale", "new", "trending"],
+                    "$ref": "Tag.json",
                     "description": "Tag"
                 },
                 { "type": "null" }

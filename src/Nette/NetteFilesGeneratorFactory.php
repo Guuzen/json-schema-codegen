@@ -114,6 +114,10 @@ final class NetteFilesGeneratorFactory
                     fqcnResolver: $fqcnResolver,
                     tools: $generatorTools,
                 ),
+                new EnumClassGenerator(
+                    printer: $printer,
+                    fqcnResolver: $fqcnResolver,
+                ),
                 new ValueClassGenerator(
                     printer: $printer,
                     fileImportsFactory: $fileImportsFactory,
