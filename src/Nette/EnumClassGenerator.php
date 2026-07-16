@@ -61,7 +61,7 @@ final class EnumClassGenerator implements FileGenerator
         $cases = [];
 
         foreach ($enum as $case) {
-            if (is_string($case)) {
+            if (is_string($case) && !is_numeric($case)) {
                 $cases[] = $case;
             } else {
                 return null;

@@ -74,14 +74,14 @@ final class NetteFilesGeneratorTest extends TestCase
 
     public function testGeneratesDtosIntoTheSameFolderAsSchemas(): void
     {
-        NetteFilesGeneratorFactory::create(
+        new NetteFilesGeneratorFactory(
             baseNamespace: 'App\Dto',
             schemaPath: self::SCHEMAS,
             outputPath: self::SCHEMAS,
             schemaSuffix: '.json',
             undefinedPath: 'Undefined.json',
             typeMappings: ['DateTimeImmutable.json' => \DateTimeImmutable::class],
-        )->run();
+        )->assemble()->run();
 
         foreach (self::FILES as $expectedPath => $actualPath) {
             self::assertFileExists($actualPath, sprintf('Expected output file "%s" was not generated', $actualPath));
