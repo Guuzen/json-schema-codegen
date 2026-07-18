@@ -15,9 +15,9 @@ use Nette\PhpGenerator\Printer;
 final readonly class NetteClass
 {
     public function __construct(
-        private PhpFile $file,
-        private PhpNamespace $namespace,
-        private ClassType $class,
+        public PhpFile $file,
+        public PhpNamespace $namespace,
+        public ClassType $class,
     )
     {
     }

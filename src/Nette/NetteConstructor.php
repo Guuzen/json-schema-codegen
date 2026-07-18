@@ -11,7 +11,7 @@ use Nette\PhpGenerator\Method;
 final readonly class NetteConstructor
 {
     public function __construct(
-        private Method $constructor,
+        public Method $constructor,
     )
     {
     }
