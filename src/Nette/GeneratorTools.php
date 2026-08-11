@@ -29,7 +29,7 @@ final readonly class GeneratorTools
     {
         $resolved = $this->annotationGenerator->generate($schema, $refNames);
 
-        $parameter->addComment('@var ' . $resolved->annotation);
+        $parameter->addComment('@var ' . $resolved);
     }
 
     public function addComment(Parameter $parameter, Schema $schema): void

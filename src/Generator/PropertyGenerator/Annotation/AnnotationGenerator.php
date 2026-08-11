@@ -9,5 +9,5 @@ use Guuzen\JsonSchemaCodegen\Schema\Schema;
 
 interface AnnotationGenerator
 {
-    public function generate(Schema $schema, RefNames $refNames): ResolvedAnnotation;
+    public function generate(Schema $schema, RefNames $refNames): string;
 }

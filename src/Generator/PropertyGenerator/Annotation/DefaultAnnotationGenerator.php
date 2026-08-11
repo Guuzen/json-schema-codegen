@@ -5,6 +5,16 @@ declare(strict_types=1);
 namespace Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\Annotation;
 
 use Guuzen\JsonSchemaCodegen\Fqcn\FqcnResolver;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\ClassType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\IntersectionType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\IntType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\ListType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\LiteralIntType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\LiteralStringType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\OtherScalarType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\StringType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\PhpDocType;
+use Guuzen\JsonSchemaCodegen\Generator\PhpDocType\UnionType;
 use Guuzen\JsonSchemaCodegen\Generator\PropertyGenerator\RefNames;
 use Guuzen\JsonSchemaCodegen\Schema\Keyword\SchemaType;
 use Guuzen\JsonSchemaCodegen\Schema\Schema;
@@ -17,15 +27,17 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
     {
     }
 
-    public function generate(Schema $schema, RefNames $refNames): ResolvedAnnotation
+    public function generate(Schema $schema, RefNames $refNames): string
     {
-        return $this->render($schema, $refNames);
+        $type = $this->render($schema, $refNames);
+
+        return $type->simplify()->render();
     }
 
-    private function render(?Schema $schema, RefNames $refNames): ResolvedAnnotation
+    private function render(?Schema $schema, RefNames $refNames): PhpDocType
     {
         if ($schema === null) {
-            return ResolvedAnnotation::mixed();
+            return OtherScalarType::mixed();
         }
 
         $allAnnotations = [];
@@ -35,37 +47,13 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
         $allAnnotations[] = $this->renderEnum($schema);
         $allAnnotations[] = $this->renderTypes($schema, $refNames);
 
-        if (array_all($allAnnotations, fn(ResolvedAnnotation $annotation) => $annotation->isMixed())) {
-            return ResolvedAnnotation::mixed();
-        }
-
-        $hasMixed = array_any(
-            $allAnnotations,
-            fn(ResolvedAnnotation $annotation) => $annotation->isMixed(),
-        );
-        $hasNotMixed = array_any(
-            $allAnnotations,
-            fn(ResolvedAnnotation $annotation) => $annotation->isNotMixed(),
-        );
-
-        if ($hasMixed && $hasNotMixed) {
-            $allAnnotations = array_filter(
-                $allAnnotations,
-                fn(ResolvedAnnotation $annotation) => $annotation->isNotMixed(),
-            );
-        }
-
-        if ($allAnnotations !== []) {
-            return ResolvedAnnotation::intersect($allAnnotations);
-        }
-
-        return ResolvedAnnotation::mixed();
+        return new IntersectionType($allAnnotations);
     }
 
-    private function renderAnyOf(Schema $schema, RefNames $refNames): ResolvedAnnotation
+    private function renderAnyOf(Schema $schema, RefNames $refNames): PhpDocType
     {
         if ($schema->anyOf === null) {
-            return ResolvedAnnotation::mixed();
+            return OtherScalarType::mixed();
         }
 
         $annotations = [];
@@ -74,29 +62,27 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
         }
 
         if ($annotations === []) {
-            return ResolvedAnnotation::mixed();
+            return OtherScalarType::mixed();
         }
 
-        return ResolvedAnnotation::unite($annotations);
+        return new UnionType($annotations);
     }
 
-    private function renderEnum(Schema $schema): ResolvedAnnotation
+    private function renderEnum(Schema $schema): PhpDocType
     {
         if ($schema->enum === [] || $schema->enum === null) {
-            return ResolvedAnnotation::mixed();
+            return OtherScalarType::mixed();
         }
 
-        $annotation = implode(
-            '|', array_map(
-                fn(string|int $v) => is_string($v) ? "'{$v}'" : (string)$v,
-                $schema->enum,
-            )
+        $literals = array_map(
+            fn(string|int $v) => is_string($v) ? new LiteralStringType($v) : new LiteralIntType($v),
+            $schema->enum,
         );
 
-        return new ResolvedAnnotation($annotation);
+        return new UnionType($literals);
     }
 
-    private function renderTypes(Schema $schema, RefNames $refNames): ResolvedAnnotation
+    private function renderTypes(Schema $schema, RefNames $refNames): PhpDocType
     {
         $annotations = [];
 
@@ -106,64 +92,58 @@ final readonly class DefaultAnnotationGenerator implements AnnotationGenerator
             $typeAnnotation = match ($type) {
                 SchemaType::Integer => $this->renderInt($schema->minimum, $schema->maximum),
                 SchemaType::String => $this->renderString($schema),
-                SchemaType::Number => new ResolvedAnnotation('float'),
-                SchemaType::Boolean => new ResolvedAnnotation('bool'),
-                SchemaType::Object => new ResolvedAnnotation('object'),
-                SchemaType::Null => new ResolvedAnnotation('null'),
+                SchemaType::Number => OtherScalarType::float(),
+                SchemaType::Boolean => OtherScalarType::bool(),
+                SchemaType::Object => OtherScalarType::object(),
+                SchemaType::Null => OtherScalarType::null(),
                 SchemaType::Array => $this->renderList($schema->items, $schema->minItems, $refNames),
-                default => new ResolvedAnnotation('mixed'),
+                default => OtherScalarType::mixed(),
             };
 
             $annotations[] = $typeAnnotation;
         }
 
         if ($annotations === []) {
-            return ResolvedAnnotation::mixed();
+            return OtherScalarType::mixed();
         }
 
-        return ResolvedAnnotation::unite($annotations);
+        return new UnionType($annotations);
     }
 
-    private function renderRef(Schema $schema, RefNames $refNames): ResolvedAnnotation
+    private function renderRef(Schema $schema, RefNames $refNames): PhpDocType
     {
         $ref = $schema->ref;
         if ($ref === null) {
-            return ResolvedAnnotation::mixed();
+            return OtherScalarType::mixed();
         }
 
         $fqcn = $this->fqcnResolver->fromUri($ref->uri);
 
-        return new ResolvedAnnotation($refNames->name($fqcn));
+        return new ClassType($refNames->name($fqcn));
     }
 
-    private function renderInt(?int $minimum, ?int $maximum): ResolvedAnnotation
+    private function renderInt(?int $minimum, ?int $maximum): PhpDocType
     {
         if ($minimum === null && $maximum === null) {
-            return new ResolvedAnnotation('int');
+            return new IntType(null, null);
         }
 
-        $min = $minimum !== null ? (string)$minimum : 'min';
-        $max = $maximum !== null ? (string)$maximum : 'max';
-
-        return new ResolvedAnnotation("int<{$min}, {$max}>");
+        return new IntType($minimum, $maximum);
     }
 
-    private function renderString(Schema $schema): ResolvedAnnotation
+    private function renderString(Schema $schema): PhpDocType
     {
         if ($schema->minLength !== null && $schema->minLength >= 1) {
-            $annoatation = 'non-empty-string';
-        } else {
-            $annoatation = 'string';
+            return StringType::nonEmptyString();
         }
 
-        return new ResolvedAnnotation($annoatation);
+        return StringType::string();
     }
 
-    private function renderList(?Schema $items, ?int $minItems, RefNames $refNames): ResolvedAnnotation
+    private function renderList(?Schema $items, ?int $minItems, RefNames $refNames): PhpDocType
     {
-        $itemAnnotation = $this->render($items, $refNames);
-        $prefix = $minItems !== null && $minItems >= 1 ? 'non-empty-list' : 'list';
+        $elementType = $this->render($items, $refNames);
 
-        return new ResolvedAnnotation("{$prefix}<{$itemAnnotation->annotation}>");
+        return $minItems !== null && $minItems >= 1 ? ListType::nonEmptyList($elementType) : ListType::list($elementType);
     }
 }
