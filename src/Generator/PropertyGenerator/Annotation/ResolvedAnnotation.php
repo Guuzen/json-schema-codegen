@@ -36,9 +36,16 @@ final readonly class ResolvedAnnotation
 
         return array_reduce(
             $annotations,
-            fn (ResolvedAnnotation $carry, ResolvedAnnotation $item) => new self(
-                annotation: $carry->annotation . '|' . $item->annotation,
-            ),
+            function (ResolvedAnnotation $carry, ResolvedAnnotation $item) {
+
+                if ($carry->annotation === $item->annotation) {
+                    return new self($carry->annotation);
+                }
+
+                return new self(
+                    annotation: $carry->annotation . '|' . $item->annotation,
+                );
+            },
             $initial,
         );
     }

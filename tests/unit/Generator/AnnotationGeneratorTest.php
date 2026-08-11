@@ -180,6 +180,13 @@ final class AnnotationGeneratorTest extends TestCase
             new Schema(type: [SchemaType::String, SchemaType::Null]),
             new ResolvedAnnotation('string|null'),
         ];
+        yield 'any of 2 string does not produce double string type' => [
+            new Schema(anyOf: [
+                new Schema(type: SchemaType::String),
+                new Schema(type: SchemaType::String),
+            ]),
+            new ResolvedAnnotation('string'),
+        ];
 
         // Class refs
         yield 'class ref' => [
